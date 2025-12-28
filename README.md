@@ -2,10 +2,12 @@
 
 Generate color palettes by blending the L/C curves of design system ramps (Tailwind, Radix, etc.) with your target hue.
 
+Demo: <https://meodai.github.io/dittoTones/
+
 ## Install
 
 ```bash
-npm install dittotones culori
+npm install dittotones
 ```
 
 ## Usage
@@ -50,7 +52,7 @@ interface GenerateResult {
   method: 'exact' | 'single' | 'blend';
   sources: {                   // Which ramps were used
     name: string;
-    deltaE: number;
+    diff: number;
     weight: number;
   }[];
   scale: Record<string, Oklch>; // The generated palette
@@ -59,23 +61,23 @@ interface GenerateResult {
 
 ## How it works
 
-1. **Find closest ramp** — matches input to nearest color in all ramps using deltaE
-2. **Find blend partner** — finds second ramp with closest hue at same shade
-3. **Blend L/C curves** — interpolates lightness/chroma between the two ramps
-4. **Apply target hue** — replaces hue across entire scale
-5. **Correct to input** — adjusts L/C so your input color fits naturally in the scale
+1. **Parse input** — converts the input into `Oklch` via `culori`
+2. **Handle neutrals** — if chroma is very low, picks the “most neutral” ramp and returns it as-is
+3. **Find closest match** — finds the nearest ramp color by Euclidean distance in OKLCH (`diff`)
+4. **Pick strategy** — `exact` if `diff` is below a small threshold, otherwise `single` (one ramp) or `blend` (two ramps; second ramp chosen by closest hue at the matched shade)
+5. **Rotate hue + correct L/C** — sets the target hue across the scale, then offsets lightness and scales chroma so the matched shade lands on the input color
 
 ## Custom ramps
 
 ```typescript
 import { DittoTones } from 'dittotones';
-import { parse, type Oklch } from 'culori';
+import { parse, oklch, type Oklch } from 'culori';
 
 const customRamps = new Map([
   ['brand', {
-    '50': parse('oklch(98% 0.01 250)') as Oklch,
-    '500': parse('#3B82F6') as Oklch,
-    '950': parse('oklch(25% 0.05 250)') as Oklch,
+    '50': oklch(parse('oklch(98% 0.01 250)')) as Oklch,
+    '500': oklch(parse('#3B82F6')) as Oklch,
+    '950': oklch(parse('oklch(25% 0.05 250)')) as Oklch,
   }],
 ]);
 
@@ -88,7 +90,12 @@ const ditto = new DittoTones({ ramps: customRamps });
 npm install
 npm run dev     # Start dev server with demo
 npm run build   # Build library
+npm run preview # Preview the demo build
 ```
+
+## Notes
+
+- ESM-only package (`"type": "module"`).
 
 ## License
 
