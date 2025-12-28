@@ -25,6 +25,7 @@ export class DittoTones {
   private ramps: Map<string, Ramp>;
   private shadeKeys: string[];
   private diff: (a: Oklch, b: Oklch) => number;
+  private neutralRampName: string;
 
   private static EXACT_THRESHOLD = 0.02;
   private static NEUTRAL_CHROMA = 0.02;
@@ -34,7 +35,28 @@ export class DittoTones {
     const firstRamp = this.ramps.values().next().value;
     if (!firstRamp) throw new Error('At least one ramp is required');
     this.shadeKeys = Object.keys(firstRamp);
+
+    // Validate keys
+    for (const [name, ramp] of this.ramps) {
+      const keys = Object.keys(ramp);
+      if (keys.length !== this.shadeKeys.length || !keys.every(k => this.shadeKeys.includes(k))) {
+        throw new Error(`Ramp ${name} has inconsistent keys`);
+      }
+    }
+
     this.diff = differenceEuclidean('oklch');
+    this.neutralRampName = this.findBestNeutralRamp();
+  }
+
+  private findBestNeutralRamp(): string {
+    let best = { name: '', avgChroma: Infinity };
+    for (const [rampName, ramp] of this.ramps) {
+      let total = 0, count = 0;
+      for (const c of Object.values(ramp)) { if (c) { total += c.c ?? 0; count++; } }
+      const avg = count > 0 ? total / count : Infinity;
+      if (avg < best.avgChroma) best = { name: rampName, avgChroma: avg };
+    }
+    return best.name;
   }
 
   generate(color: string): GenerateResult {
@@ -95,14 +117,8 @@ export class DittoTones {
   }
 
   private generateNeutral(parsed: Oklch): GenerateResult {
-    let bestRamp = { name: '', avgChroma: Infinity };
-    for (const [rampName, ramp] of this.ramps) {
-      let total = 0, count = 0;
-      for (const c of Object.values(ramp)) { if (c) { total += c.c ?? 0; count++; } }
-      const avg = count > 0 ? total / count : Infinity;
-      if (avg < bestRamp.avgChroma) bestRamp = { name: rampName, avgChroma: avg };
-    }
-    const ramp = this.ramps.get(bestRamp.name)!;
+    const rampName = this.neutralRampName;
+    const ramp = this.ramps.get(rampName)!;
     const shade = this.findClosestShadeInRamp(parsed, ramp);
     
     // For neutrals, just use the ramp as-is without L/C correction
@@ -114,7 +130,7 @@ export class DittoTones {
     
     return {
       inputColor: parsed, matchedShade: shade, method: 'exact',
-      sources: [{ name: bestRamp.name, diff: 0, weight: 1 }],
+      sources: [{ name: rampName, diff: 0, weight: 1 }],
       scale,
     };
   }
@@ -181,15 +197,22 @@ export class DittoTones {
     const deltaL = target.l - generated.l;
     const targetC = target.c ?? 0;
     const generatedC = generated.c ?? 0;
-    // Use multiplicative scaling for chroma to preserve curve shape
-    const chromaScale = generatedC > 0.001 ? targetC / generatedC : 1;
+    
+    let scaleC: (c: number) => number;
+    if (generatedC > DittoTones.NEUTRAL_CHROMA) {
+      const ratio = targetC / generatedC;
+      scaleC = (c) => c * ratio;
+    } else {
+      const diff = targetC - generatedC;
+      scaleC = (c) => c + diff;
+    }
 
     const scale: Record<string, Oklch> = {};
     for (const [shade, color] of Object.entries(rotated)) {
       scale[shade] = {
         mode: 'oklch',
         l: Math.max(0, Math.min(1, color.l + deltaL)),
-        c: Math.max(0, (color.c ?? 0) * chromaScale),
+        c: Math.max(0, scaleC(color.c ?? 0)),
         h: color.h,
       };
     }
