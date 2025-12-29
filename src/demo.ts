@@ -2,16 +2,19 @@ import { DittoTones } from './index';
 import { tailwindRamps } from './ramps/tailwind';
 import { tailwindV3Ramps } from './ramps/tailwind-v3';
 import { radixRamps } from './ramps/radix';
-import { formatCss, formatHex, type Oklch } from 'culori';
+import { formatCss, formatHex, converter, type Oklch } from 'culori';
 
 type RampSet = 'tailwind' | 'tailwind-v3' | 'radix';
+type ColorFormat = 'oklch' | 'oklab' | 'hex';
 
 let currentRampSet: RampSet = 'tailwind';
+let currentFormat: ColorFormat = 'oklch';
 let ditto = new DittoTones({ ramps: tailwindRamps });
 
 const colorPicker = document.getElementById('colorPicker') as HTMLInputElement;
 const hexInput = document.getElementById('hexInput') as HTMLInputElement;
 const rampSelector = document.getElementById('rampSelector') as HTMLSelectElement;
+const formatSelector = document.getElementById('formatSelector') as HTMLSelectElement;
 const methodBadge = document.getElementById('methodBadge')!;
 const rampInfo = document.getElementById('rampInfo')!;
 const blendViz = document.getElementById('blendViz')!;
@@ -105,11 +108,40 @@ function getRampColors(rampName: string): Record<string, string> {
   return colors;
 }
 
-function toCSS(result: ReturnType<typeof ditto.generate>, name = 'color') {
+function roundColorChannels(color: any, precision = 3): any {
+  const rounded: any = { mode: color.mode };
+  for (const key in color) {
+    if (key === 'mode') continue;
+    const value = color[key];
+    if (typeof value === 'number') {
+      rounded[key] = Number(value.toFixed(precision));
+    } else {
+      rounded[key] = value;
+    }
+  }
+  return rounded;
+}
+
+function formatColor(color: Oklch, format: ColorFormat): string {
+  switch (format) {
+    case 'hex':
+      return formatHex(color) || '#000000';
+    case 'oklab': {
+      const oklab = converter('oklab');
+      const converted = oklab(color);
+      return formatCss(roundColorChannels(converted, 3)) || 'oklab(0 0 0)';
+    }
+    case 'oklch':
+    default:
+      return formatCss(roundColorChannels(color, 3)) || 'oklch(0 0 0)';
+  }
+}
+
+function toCSS(result: ReturnType<typeof ditto.generate>, name = 'color', format: ColorFormat = 'oklch') {
   const info = result.sources.map((r) => `${r.name} (${(r.weight * 100).toFixed(0)}%)`).join(' + ');
   const lines = [`  /* ${name}: ${result.method} from ${info} @ shade ${result.matchedShade} */`];
   for (const [shade, color] of Object.entries(result.scale)) {
-    lines.push(`  --${name}-${shade}: ${formatCss(color)};`);
+    lines.push(`  --${name}-${shade}: ${formatColor(color, format)};`);
   }
   return `:root {\n${lines.join('\n')}\n}`;
 }
@@ -235,7 +267,7 @@ async function fetchAndApplyName(result: ReturnType<typeof ditto.generate>) {
     if (name) {
       const safeName = sanitizeName(name);
       paletteTitle.textContent = `Generated Palette: ${name}`;
-      cssOutput.textContent = toCSS(result, safeName);
+      cssOutput.textContent = toCSS(result, safeName, currentFormat);
 
       if (lastResult) renderBlendViz(lastResult);
     }
@@ -287,7 +319,7 @@ function updatePalette(color: string) {
       paletteGrid.appendChild(div);
     }
 
-    cssOutput.textContent = toCSS(result, 'brand');
+    cssOutput.textContent = toCSS(result, 'brand', currentFormat);
 
     // Debounce name fetching
     if (nameFetchTimeout) clearTimeout(nameFetchTimeout);
@@ -319,6 +351,11 @@ hexInput.addEventListener('input', (e) => {
 rampSelector.addEventListener('change', (e) => {
   currentRampSet = (e.target as HTMLSelectElement).value as RampSet;
   ditto = new DittoTones({ ramps: getCurrentRamps() });
+  updatePalette(colorPicker.value);
+});
+
+formatSelector.addEventListener('change', (e) => {
+  currentFormat = (e.target as HTMLSelectElement).value as ColorFormat;
   updatePalette(colorPicker.value);
 });
 

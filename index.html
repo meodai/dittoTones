@@ -295,7 +295,7 @@
       .copy-btn {
         background: #27272a;
         border: 1px solid #3f3f46;
-        padding: 0.5rem 1rem;
+        padding: 0.42rem 1rem;
         color: #a1a1aa;
         cursor: pointer;
         font-size: 0.875rem;
@@ -461,7 +461,14 @@
       <div class="section">
         <div class="palette-header">
           <h2 class="section__title" id="paletteTitle">Generated Palette</h2>
-          <button class="copy-btn" id="copyBtn">Copy CSS</button>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <select id="formatSelector" class="ramp-selector" style="padding: 0.5rem 0.75rem; font-size: 0.875rem;">
+              <option value="oklch">oklch</option>
+              <option value="oklab">oklab</option>
+              <option value="hex">hex</option>
+            </select>
+            <button class="copy-btn" id="copyBtn">Copy CSS</button>
+          </div>
         </div>
         <pre class="css-output" id="cssOutput"></pre>
         <div class="palette-grid" id="paletteGrid"></div>
