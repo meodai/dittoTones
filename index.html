@@ -156,7 +156,6 @@
         flex: 1;
         height: 36px;
         display: flex;
-        overflow: hidden;
       }
       .ramp-bar .shade-block {
         flex: 1;
@@ -168,7 +167,7 @@
       }
       .ramp-bar .shade-block.matched {
         z-index: 1;
-        box-shadow: 0 0 0 1px #fff;
+        transform: scale(1.1);
       }
       .blend-indicator {
         margin-left: 116px;
@@ -207,43 +206,46 @@
       }
       .shade {
         aspect-ratio: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
         font-size: 0.7rem;
         cursor: pointer;
         transition: transform 0.15s;
         position: relative;
       }
-      .shade:hover {
+      .shade__label {
+        background: #fff;
+        position: absolute;
+        bottom: 2px;
+        left: 2px;
+        right: 2px;
+        display: flex;
+        flex-direction: column;
+        padding: 0.3rem 0.5rem;
+      }
+
+      .shade:hover,
+      .shade.matched {
         transform: scale(1.1);
         z-index: 10;
+      }
+      .shade.matched {
       }
       .shade-key {
         font-weight: 600;
         opacity: 0.9;
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
       }
       .shade-value {
         font-family: monospace;
         font-size: 0.55rem;
-        opacity: 0.7;
+        opacity: 0.6;
       }
-      .shade.matched {
-        &::before {
+      .shade.matched .shade-key {
+        &::after {
           content: '◆';
-          font-size: .6em;
-          position: absolute;
-          bottom: 0.75rem;
-          left: 50%;
-          transform: translateX(-50%);
+          font-size: .5em;
         }
-      }
-      .shade.light-text {
-        color: #fafafa;
-      }
-      .shade.dark-text {
-        color: #18181b;
       }
       .css-output {
         margin-top: 1.5rem;
@@ -334,12 +336,12 @@
 
       <div class="picker-section">
         <div class="color-input-wrapper">
-          <input type="color" id="colorPicker" value="#f97316" />
+          <input type="color" id="colorPicker" value="#55F7C1" />
           <input
             type="text"
             id="hexInput"
             class="hex-input"
-            value="#F97316"
+            value="#55F7C1"
             maxlength="7"
           />
         </div>

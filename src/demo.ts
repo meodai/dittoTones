@@ -163,7 +163,7 @@ function updatePalette(color: string) {
       div.className = `shade ${isLightColor(hex) ? 'dark-text' : 'light-text'}`;
       if (shade === result.matchedShade) div.classList.add('matched');
       div.style.background = hex;
-      div.innerHTML = `<span class="shade-key">${shade}</span><span class="shade-value">${hex}</span>`;
+      div.innerHTML = `<div class="shade__label"><span class="shade-key">${shade}</span><span class="shade-value">${hex}</span></div>`;
       div.title = `Click to copy ${css}`;
       div.addEventListener('click', () => {
         navigator.clipboard.writeText(css);
