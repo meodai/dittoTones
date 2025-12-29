@@ -17,20 +17,56 @@
     <meta property="twitter:url" content="https://meodai.github.io/dittoTones/" />
     <meta property="twitter:title" content="dittoTones" />
     <meta property="twitter:description" content="A mini-library to transform any color into a full palette, based on the perceptual 'DNA' of any design system." />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght@8..144,100..1000&family=Xanh+Mono&display=swap"
+    />
     <style>
+      :root {
+        --font-ui: 'Google Sans Flex', system-ui, -apple-system, sans-serif;
+        --font-input: 'Xanh Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
       * {
         margin: 0;
         padding: 0;
       }
+
+      input,
+      select,
+      button,
+      textarea {
+        font: inherit;
+        font-family: var(--font-input);
+      }
+
+      pre,
+      code,
+      kbd,
+      samp {
+        font-family: inherit;
+      }
       body {
-        font-family:
-          system-ui,
-          -apple-system,
-          sans-serif;
+        font-family: var(--font-ui);
         background: #fff;
         color: #202126;
         min-height: 100vh;
         padding: 2rem;
+      }
+
+      /* Force-load input font early (some browsers defer form-control font fetches) */
+      body::after {
+        content: '0';
+        font-family: var(--font-input);
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
       }
 
       svg {
@@ -47,9 +83,15 @@
         margin-bottom: 0.5rem;
         color: #a855f7;
       }
+      h1,
+      h2 {
+        font-variation-settings: "slnt" 0, "GRAD" 0, "ROND" 100;
+      }
       .subtitle {
         color: #a1a1a1;
         margin-bottom: 2rem;
+        max-width: 45ch;
+        line-height: 1.5;
       }
       .section--picker {
         margin-bottom: 1.5rem;
@@ -81,7 +123,6 @@
         border: 1px solid #3f3f46;
         padding: 0.75rem 1rem;
         color: #fafafa;
-        font-family: monospace;
         font-size: 1.25rem;
         width: 140px;
         text-transform: uppercase;
@@ -124,6 +165,7 @@
       }
       .ramp-weight {
         color: #a855f7;
+        font-family: var(--font-input);
       }
       .ramp-selector {
         background: #27272a;
@@ -143,7 +185,7 @@
       }
       .section__title {
         font-size: 1.5rem;
-        font-weight: 100;
+        font-weight: 800;
         margin-bottom: 1rem;
       }
       .blend-viz {
@@ -168,6 +210,7 @@
         color: #a855f7;
         font-weight: 400;
         font-size: 0.8rem;
+        font-family: var(--font-input);
       }
       .ramp-bar {
         flex: 1;
@@ -251,9 +294,9 @@
         align-items: center;
       }
       .shade-value {
-        font-family: monospace;
         font-size: 0.55rem;
         opacity: 0.6;
+        font-family: var(--font-input);
       }
       .shade.matched .shade-key {
         &::after {
@@ -265,13 +308,13 @@
         margin-top: 4rem;
         background: #0a0a0a;
         padding: 1rem;
-        font-family: monospace;
         font-size: 0.8rem;
         color: #fff;
         overflow-x: auto;
         white-space: pre;
         max-height: 300px;
         overflow-y: auto;
+        font-family: var(--font-input);
       }
       .toast {
         position: fixed;
