@@ -457,6 +457,14 @@
         line-height: 1.5;
         margin-left: var(--s-inset);
       }
+      .kofi {
+        display: block;
+        width: 3rem;
+        margin-left: calc(var(--s-inset) - .5rem);
+        img {
+          width: 100%;
+        }
+      }
     </style>
   </head>
   <body>
@@ -526,10 +534,21 @@
       <aside class="section">
         <h2 class="section__title">About</h2>
         <p class="description">
-          Created by <a href="https://elastiq.ch">Elastiq / Meodai</a> under the MIT License. <br />
+          Created by <a href="https://elastiq.ch">Elastiq / David Aerne</a> under the MIT License. <br />
           View the source code on <a href="https://github.com/meodai/dittoTones">GitHub</a>.
         </p>
+        
+        <h2 class="section__title">Support</h2>
+        <p class="description">
+          If you find this project useful, please consider <a href="https://ko-fi.com/colorparrot" rel="noopener"
+            target="_blank">buying me a coffee</a>. It keeps my caffeine levels high enough to distinguish between #fafafa and
+          #fbfbfb.
+        </p>
+        <a href="https://ko-fi.com/colorparrot" rel="noopener" target="_blank" class="kofi">
+          <img src="https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png">
+        </a>
       </aside>
+
     </div>
 
     <div class="toast" id="toast">Copied to clipboard!</div>
