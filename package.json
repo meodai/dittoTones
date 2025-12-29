@@ -1,6 +1,6 @@
 {
   "name": "dittotones",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "type": "module",
   "description": "Transform any color into a full palette by copying the perceptual DNA of Tailwind, Radix, and other design systems",
   "scripts": {
