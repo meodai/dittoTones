@@ -2,7 +2,8 @@ import { DittoTones } from './index';
 import { tailwindRamps } from './ramps/tailwind';
 import { tailwindV3Ramps } from './ramps/tailwind-v3';
 import { radixRamps } from './ramps/radix';
-import { formatCss, formatHex, converter, type Oklch } from 'culori';
+import { formatCssRounded } from './utils';
+import { formatHex, converter, type Oklch } from 'culori';
 
 type RampSet = 'tailwind' | 'tailwind-v3' | 'radix';
 type ColorFormat = 'oklch' | 'oklab' | 'hex';
@@ -25,56 +26,11 @@ const copyBtn = document.getElementById('copyBtn')!;
 const toast = document.getElementById('toast')!;
 
 const face = document.querySelector<HTMLElement>('[data-face]')!;
-const eyes = [
-  '✿',
-  '╹',
-  'T',
-  '个',
-  '≖',
-  'ꈍ',
-  'ʘ',
-  '◕',
-  '•',
-  'ಠ',
-  '눈',
-  '◉',
-  '◔',
-  'Φ',
-  '⊙',
-  '⨀',
-  '☉',
-  'σ',
-  'ф',
-  '￣',
-  '✧',
-] as const;
-const mouths = [
-  'ʖ̯ ',
-  'ٹ',
-  '〇',
-  'θ',
-  'ᴥ',
-  'ゝ',
-  'з',
-  'ᴗ',
-  '‿',
-  '_',
-  'ω',
-  '▽',
-  '△',
-  '෴',
-  'o',
-  '.',
-  '﹏',
-  'ᆺ',
-  'ロ',
-  'Д',
-  '︿',
-  '～',
-  '∀',
-  '_ʖ',
-  '(ｴ)',
-] as const;
+// prettier-ignore
+const eyes = ['✿',  '╹',  'T',  '个',  '≖',  'ꈍ',  'ʘ',  '◕',  '•',  'ಠ',  '눈',  '◉',  '◔',  'Φ',  '⊙',  '⨀',  '☉',  'σ',  'ф',  '￣',  '✧'] as const;
+// prettier-ignore
+const mouths = ['ʖ̯ ', 'ٹ', '〇', 'θ', 'ᴥ', 'ゝ', 'з', 'ᴗ', '‿', '_', 'ω', '▽', '△', '෴', 'o', '.', '﹏', 'ᆺ', 'ロ', 'Д', '︿', '～', '∀', '_ʖ', '(ｴ)'] as const;
+// prettier-ignore
 const cheeks = ['♪', '˘', '˚', '•', '♥', '?'] as const;
 
 type Eye = (typeof eyes)[number];
@@ -155,20 +111,6 @@ function getRampColors(rampName: string): Record<string, string> {
   return colors;
 }
 
-function roundColorChannels(color: any, precision = 3): any {
-  const rounded: any = { mode: color.mode };
-  for (const key in color) {
-    if (key === 'mode') continue;
-    const value = color[key];
-    if (typeof value === 'number') {
-      rounded[key] = Number(value.toFixed(precision));
-    } else {
-      rounded[key] = value;
-    }
-  }
-  return rounded;
-}
-
 function formatColor(color: Oklch, format: ColorFormat): string {
   switch (format) {
     case 'hex':
@@ -176,11 +118,11 @@ function formatColor(color: Oklch, format: ColorFormat): string {
     case 'oklab': {
       const oklab = converter('oklab');
       const converted = oklab(color);
-      return formatCss(roundColorChannels(converted, 3)) || 'oklab(0 0 0)';
+      return formatCssRounded(converted) || 'oklab(0 0 0)';
     }
     case 'oklch':
     default:
-      return formatCss(roundColorChannels(color, 3)) || 'oklch(0 0 0)';
+      return formatCssRounded(color) || 'oklch(0 0 0)';
   }
 }
 
@@ -236,7 +178,9 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
   if (src1) {
     const w1 = result.sources.length === 2 ? src1.weight : 1;
     row1.innerHTML = `
-      <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(0)}%</span></div>
+      <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(
+      0
+    )}%</span></div>
       <div class="ramp-bar">${renderRampBar(src1.name, result.matchedShade)}</div>
     `;
   }
@@ -258,7 +202,7 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
     if (!oklchColor) continue;
 
     const hex = formatHex(oklchColor) || '#000';
-    const css = formatCss(oklchColor) || '';
+    const css = formatCssRounded(oklchColor) || '';
 
     const div = document.createElement('div');
     div.className = `shade ${isLightColor(hex) ? 'dark-text' : 'light-text'}`;
@@ -281,7 +225,9 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
   if (src2) {
     const w2 = result.sources.length === 2 ? src2.weight : 0;
     row3.innerHTML = `
-      <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(0)}%</span></div>
+      <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(
+      0
+    )}%</span></div>
       <div class="ramp-bar">${renderRampBar(src2.name, result.matchedShade)}</div>
     `;
   }
@@ -341,7 +287,9 @@ function updatePalette(color: string) {
       result.sources
         .map(
           (r) =>
-            `<span class="ramp-name">${r.name}</span> <span class="ramp-weight">(${(r.weight * 100).toFixed(0)}%)</span>`
+            `<span class="ramp-name">${r.name}</span> <span class="ramp-weight">(${(
+              r.weight * 100
+            ).toFixed(0)}%)</span>`
         )
         .join(' + ') + ` @ shade <strong>${result.matchedShade}</strong>`;
 
@@ -356,7 +304,7 @@ function updatePalette(color: string) {
       if (!oklchColor) continue;
 
       const hex = formatHex(oklchColor) || '#000';
-      const css = formatCss(oklchColor) || '';
+      const css = formatCssRounded(oklchColor) || '';
 
       const div = document.createElement('div');
       div.className = `shade ${isLightColor(hex) ? 'dark-text' : 'light-text'}`;
