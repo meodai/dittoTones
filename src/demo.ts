@@ -145,9 +145,9 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>, inputColor: s
     const yPos = t * 100;
     indicator.innerHTML = `
       <svg width="100%" height="48">
-        <line x1="${shadeX}%" y1="0" x2="${shadeX}%" y2="48" stroke="currentColor" stroke-width="1" stroke-dasharray="3,3"/>
-        <circle cx="${shadeX}%" cy="${yPos * 0.48}" r="10" fill="${inputColor}" stroke="currentColor" stroke-width="1"/>
-        <text x="${shadeX}%" y="${yPos * 0.48}" text-anchor="middle" dominant-baseline="central" fill="${isLightColor(inputColor) ? '#18181b' : '#fafafa'}" font-size="6" font-weight="600">${t.toFixed(2)}</text>
+        <line x1="${shadeX}%" y1="0" x2="${shadeX}%" y2="48" stroke="var(--c-text-alt)" stroke-width="1" stroke-dasharray="3,3"/>
+        <circle cx="${shadeX}%" cy="${yPos * 0.48}" r="10" fill="${inputColor}" stroke="var(--c-text-alt)" stroke-width="1"/>
+        <text x="${shadeX}%" y="${yPos * 0.48}" text-anchor="middle" dominant-baseline="central" fill="${isLightColor(inputColor) ? '#18181b' : '#fafafa'}" font-size="7" font-weight="600">${t.toFixed(2)}</text>
       </svg>
     `;
     blendViz.appendChild(indicator);
@@ -174,8 +174,8 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>, inputColor: s
     indicator.style.height = '84px';
     indicator.innerHTML = `
       <svg width="100%" height="28">
-        <line x1="${shadeX}%" y1="0" x2="${shadeX}%" y2="14" stroke="currentColor" stroke-width="1"/>
-        <circle cx="${shadeX}%" cy="20" r="8" fill="${inputColor}" stroke="currentColor" stroke-width="1"/>
+        <line x1="${shadeX}%" y1="0" x2="${shadeX}%" y2="14" stroke="var(--c-text-alt)" stroke-width="1"/>
+        <circle cx="${shadeX}%" cy="20" r="8" fill="${inputColor}" stroke="var(--c-text-alt)" stroke-width="1"/>
       </svg>
     `;
     blendViz.appendChild(indicator);

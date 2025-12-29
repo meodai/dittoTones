@@ -240,6 +240,7 @@
         text-align: right;
         flex-shrink: 0;
         padding-right: 1rem;
+        box-sizing: border-box;
       }
       .ramp-label .weight {
         color: var(--c-hightlight);
@@ -296,7 +297,7 @@
         gap: 0rem;
       }
       .shade {
-        padding-top: 100%;
+        padding-top: calc(100% + 1.5rem);
         font-size: 0.7rem;
         cursor: pointer;
         transition: transform 0.15s;
