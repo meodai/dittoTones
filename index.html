@@ -65,6 +65,12 @@
         }
       }
 
+      @media (max-width: 700px) {
+        :root {
+          --s-inset: max(2rem, 10vw);
+        }
+      }
+
       a,
       button,
       select,
@@ -251,6 +257,15 @@
         align-items: center;
         min-height: 2.5rem;
       }
+
+      @media (max-width: 600px) {
+        .ramp-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+        }
+      }
       .ramp-label {
         width: var(--s-inset);
         font-size: 0.85rem;
@@ -258,6 +273,17 @@
         flex-shrink: 0;
         padding-right: 1rem;
         box-sizing: border-box;
+      }
+
+      @media (max-width: 600px) {
+        .ramp-label {
+          width: 100%;
+          text-align: left;
+          padding-right: 0;
+          display: flex;
+          justify-content: space-between;
+
+        }      
       }
       .ramp-label .weight {
         color: var(--c-hightlight);
