@@ -43,7 +43,7 @@
         --c-purple: #a855f7;
         --c-black: #202126;
         --c-grey: #a1a1a1;
-        --c-white: #fafafa;
+        --c-white: #f4f4f8;
         --c-red: tomato;
         --c-green: rgb(67, 164, 133);
 
@@ -55,6 +55,12 @@
 
         --s-inset: 8rem;
         line-height: 1.5;
+        overflow-x: hidden;
+
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        
       }
 
       @media (prefers-color-scheme: light) {
@@ -65,11 +71,18 @@
         }
       }
 
+      @media (max-width: 700px) {
+        :root {
+          --s-inset: max(2rem, 10vw);
+        }
+      }
+
       a,
       button,
       select,
       input {
         color: var(--c-interactive);
+        border-radius: 2px;
       }
 
       a {
@@ -137,9 +150,45 @@
         color: var(--c-text-alt);
         letter-spacing: -0.025em;
       }
+      h1, h2 {
+        position: relative;
+
+        &::after {
+          height: 0.5px;
+          content: '';
+          position: absolute;
+          bottom: -.75rem;
+          width: 200vw;
+          background: var(--c-text);
+          left: 50%;
+          transform: translateX(-50%);
+          opacity: 0.5;
+        }
+      }
+      .container {
+        position: relative;
+        &::after,
+        &::before {
+          content: '';
+          position: absolute;
+
+          width: 0.5px;
+          top: calc(-1 * max(15vmin, 2rem));
+          bottom: calc(-1 * max(15vmin, 2rem));
+          opacity: 0.5;
+          background: var(--c-text);
+        }
+
+        &::after {
+          right: -3rem;
+        }
+        &::before {
+          left: -3rem;
+        }
+      }
       .subtitle {
         margin-bottom: 2rem;
-        max-width: 45ch;
+        max-width: 55ch;
         line-height: 1.5;
         margin-top: 2em;
 
@@ -147,11 +196,25 @@
       }
 
       .section--picker {
+        position: sticky;
+        top: -1px;
         margin-bottom: 1.5rem;
         display: flex;
         align-items: center;
         gap: 1.5rem;
         flex-wrap: wrap;
+        border-top: 0.5px solid color-mix(in srgb, var(--c-text) 50%, transparent);
+        border-bottom: 0.5px solid color-mix(in srgb, var(--c-text) 50%, transparent);
+        padding: 1.5rem 3rem;
+        margin-left: -3rem;
+        margin-right: -3rem;
+        box-sizing: border-box;
+        background-image: radial-gradient(circle at 50% 50%,
+ transparent 0% 35%, var(--c-bg) 35% 100%);
+        background-repeat: repeat;
+        background-size: 3px 3px;
+        z-index: 1000;
+        
       }
       .color-input-wrapper {
         display: flex;
@@ -164,7 +227,7 @@
         cursor: pointer;
         background: transparent;
         margin-right: -1px;
-        border-radius: 0;
+        border-radius: 2px;
       }
       input[type='color']::-webkit-color-swatch-wrapper {
         padding: 0;
@@ -236,6 +299,12 @@
       .blend-section {
         margin-top: 4rem;
       }
+      .section__tools {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: -1.5rem
+      }
       .section__title {
         font-size: 1.5rem;
         margin-bottom: 1rem;
@@ -251,6 +320,15 @@
         align-items: center;
         min-height: 2.5rem;
       }
+
+      @media (max-width: 600px) {
+        .ramp-row {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 0.5rem;
+          font-size: 0.9rem;
+        }
+      }
       .ramp-label {
         width: var(--s-inset);
         font-size: 0.85rem;
@@ -258,6 +336,18 @@
         flex-shrink: 0;
         padding-right: 1rem;
         box-sizing: border-box;
+        line-height: 1.2;
+      }
+
+      @media (max-width: 600px) {
+        .ramp-label {
+          width: 100%;
+          text-align: left;
+          padding-right: 0;
+          display: flex;
+          justify-content: space-between;
+
+        }      
       }
       .ramp-label .weight {
         color: var(--c-hightlight);
@@ -269,15 +359,16 @@
         height: 2rem;
         display: flex;
       }
-      .ramp-bar .shade-block {
+      .shade-block {
         flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 0.9rem;
         line-height: 1;
+        background: var(--cc);
       }
-      .ramp-bar .shade-block.matched {
+      .shade-block.matched {
         z-index: 1;
         transform: scale(1.1);
       }
@@ -316,7 +407,21 @@
       }
       .palette-grid {
         display: grid;
-        gap: 0rem;
+        gap: 0.25rem;
+
+        .shade {
+          position: relative;
+          border: 2px solid var(--c-bg);
+          box-shadow: 0 0 0 .5px color-mix(in srgb, var(--c-text) 50%, transparent);
+          
+          &.matched {
+            box-shadow: 0 0 .5px color-mix(in srgb, var(--c-text) 50%, transparent), 
+                        0 0 0 3px var(--c-bg),
+                        0 0 0 3.5px color-mix(in srgb, var(--c-hightlight) 30%, transparent),
+                        0 0 1rem var(--cc);
+          
+          }
+        }
       }
       .shade {
         padding-top: calc(100% + 1.5rem);
@@ -324,17 +429,18 @@
         cursor: pointer;
         transition: transform 0.15s;
         position: relative;
+        background: var(--cc);
       }
       .shade__label {
-        background: var(--c-text-alt);
-        color: var(--c-bg);
+        background: var(--c-bg);
+        color: var(--c-text-alt);
         position: absolute;
-        bottom: 2px;
-        left: 2px;
-        right: 2px;
+        bottom: 0;
+        left: 0;
+        right: 0;
         display: flex;
         flex-direction: column;
-        padding: 0.3rem 0.5rem;
+        padding: 0.2rem 2px 0;
         line-height: 1.1;
       }
 
@@ -343,36 +449,50 @@
         transform: scale(1.1);
         z-index: 10;
       }
-      .shade.matched {
+      .shade:hover {
+        z-index: 11;
+      }
+      .matched {
+        box-shadow: 0 0 0 3px var(--c-bg),
+                    0 0 0 3.5px color-mix(in srgb, var(--c-hightlight) 30%, transparent);
       }
       .shade-key {
-        opacity: 0.9;
         display: flex;
         gap: 0.25rem;
         align-items: center;
       }
       .shade-value {
-        font-size: 0.55rem;
-        opacity: 0.6;
+        font-size: 0.6rem;
+        opacity: 0.8;
         font-family: var(--font-input);
       }
       .shade.matched .shade-key {
         &::after {
           content: '◆';
-          font-size: 0.5em;
+          font-size: 0.6em;
         }
       }
       .css-output {
         margin-top: 2rem;
-        background: #0a0a0a;
-        padding: 1rem;
+        margin-inline: -3rem;
+        margin-top: -2.25rem;
+        margin-bottom: -2rem;
+        padding: 3rem;
+        padding-bottom: 4.5rem; 
         font-size: 0.8rem;
-        color: #fff;
+        color: var(--c-text-alt);
         overflow-x: auto;
         white-space: pre;
         max-height: 300px;
         overflow-y: auto;
         font-family: var(--font-input);
+
+        border-bottom: 0.5px solid color-mix(in srgb, var(--c-text) 50%, transparent);
+
+        background-image: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--c-text), transparent 75%) 0% 35%, transparent 35% 100%);
+        background-repeat: repeat;
+        background-size: 3px 3px;
+
       }
       .toast {
         position: fixed;
@@ -395,6 +515,9 @@
       .logo {
         display: inline-block;
 
+        --x: 0;
+        --y: 0;
+
         height: 1em;
         aspect-ratio: 1;
         position: relative;
@@ -416,7 +539,11 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-45%, -55%);
+        transform: translate(
+          calc(-45% + (var(--x, 0) * 1em)),
+          calc(-55% + (var(--y, 0) * 1em))
+        );
+        will-change: transform;
         color: var(--c-text-alt);
         font-size: 0.3em;
         white-space: nowrap;
@@ -425,11 +552,19 @@
         font-weight: 300;
       }
       .description {
-        max-width: 50ch;
-        margin-top: 2em;
-        margin-bottom: 2rem;
+        max-width: 55ch;
+        margin-top: 3em;
+        margin-bottom: 4rem;
         line-height: 1.5;
         margin-left: var(--s-inset);
+      }
+      .kofi {
+        display: block;
+        width: 3rem;
+        margin-left: calc(var(--s-inset) - .5rem);
+        img {
+          width: 100%;
+        }
       }
     </style>
   </head>
@@ -464,18 +599,17 @@
       </div>
 
       <div class="section">
-        <h2 class="section__title">Source Ramps</h2>
+        <h2 class="section__title">Ramp-Mix</h2>
         <div id="blendViz" class="blend-viz"></div>
       </div>
 
       <div class="section">
         <div class="palette-header">
           <h2 class="section__title" id="paletteTitle">Generated Palette</h2>
-          <div style="display: flex; gap: 0.5rem; align-items: center">
+          <div class="section__tools">
             <select
               id="formatSelector"
               class="ramp-selector"
-              style="padding: 0.5rem 0.75rem; font-size: 0.875rem"
             >
               <option value="oklch">oklch</option>
               <option value="oklab">oklab</option>
@@ -500,10 +634,21 @@
       <aside class="section">
         <h2 class="section__title">About</h2>
         <p class="description">
-          Created by <a href="https://elastiq.ch">Elastiq / Meodai</a> under the MIT License. <br />
+          Created by <a href="https://elastiq.ch">Elastiq / David Aerne</a> under the MIT License. 
           View the source code on <a href="https://github.com/meodai/dittoTones">GitHub</a>.
         </p>
+        
+        <h2 class="section__title">Support</h2>
+        <p class="description">
+          If you find this project useful, please consider <a href="https://ko-fi.com/colorparrot" rel="noopener"
+            target="_blank">buying me a coffee</a>. It keeps my caffeine levels high enough to distinguish between #fafafa and
+          #fbfbfb.
+        </p>
+        <a href="https://ko-fi.com/colorparrot" rel="noopener" target="_blank" class="kofi">
+          <img src="https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png">
+        </a>
       </aside>
+
     </div>
 
     <div class="toast" id="toast">Copied to clipboard!</div>

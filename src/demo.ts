@@ -2,8 +2,7 @@ import { DittoTones } from './index';
 import { tailwindRamps } from './ramps/tailwind';
 import { tailwindV3Ramps } from './ramps/tailwind-v3';
 import { radixRamps } from './ramps/radix';
-import { formatCssRounded } from './utils';
-import { formatHex, converter, type Oklch } from 'culori';
+import { formatCss, formatHex, converter, type Oklch } from 'culori';
 
 type RampSet = 'tailwind' | 'tailwind-v3' | 'radix';
 type ColorFormat = 'oklch' | 'oklab' | 'hex';
@@ -26,11 +25,57 @@ const copyBtn = document.getElementById('copyBtn')!;
 const toast = document.getElementById('toast')!;
 
 const face = document.querySelector<HTMLElement>('[data-face]')!;
-// prettier-ignore
-const eyes = ['✿',  '╹',  'T',  '个',  '≖',  'ꈍ',  'ʘ',  '◕',  '•',  'ಠ',  '눈',  '◉',  '◔',  'Φ',  '⊙',  '⨀',  '☉',  'σ',  'ф',  '￣',  '✧'] as const;
-// prettier-ignore
-const mouths = ['ʖ̯ ', 'ٹ', '〇', 'θ', 'ᴥ', 'ゝ', 'з', 'ᴗ', '‿', '_', 'ω', '▽', '△', '෴', 'o', '.', '﹏', 'ᆺ', 'ロ', 'Д', '︿', '～', '∀', '_ʖ', '(ｴ)'] as const;
-// prettier-ignore
+const logo = document.querySelector<HTMLElement>('.logo');
+const eyes = [
+  '✿',
+  '╹',
+  'T',
+  '个',
+  '≖',
+  'ꈍ',
+  'ʘ',
+  '◕',
+  '•',
+  'ಠ',
+  '눈',
+  '◉',
+  '◔',
+  'Φ',
+  '⊙',
+  '⨀',
+  '☉',
+  'σ',
+  'ф',
+  '￣',
+  '✧',
+] as const;
+const mouths = [
+  'ʖ̯ ',
+  'ٹ',
+  '〇',
+  'θ',
+  'ᴥ',
+  'ゝ',
+  'з',
+  'ᴗ',
+  '‿',
+  '_',
+  'ω',
+  '▽',
+  '△',
+  '෴',
+  'o',
+  '.',
+  '﹏',
+  'ᆺ',
+  'ロ',
+  'Д',
+  '︿',
+  '～',
+  '∀',
+  '_ʖ',
+  '(ｴ)',
+] as const;
 const cheeks = ['♪', '˘', '˚', '•', '♥', '?'] as const;
 
 type Eye = (typeof eyes)[number];
@@ -70,6 +115,46 @@ function setRandomFace() {
 }
 
 setRandomFace();
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function setLogoPointerVars(clientX: number, clientY: number) {
+  if (!logo) return;
+  const rect = logo.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return;
+
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  // Normalize against viewport edges so +/-1 is reached near the browser sides,
+  // not after moving a few pixels across the logo.
+  const maxDx = Math.max(cx, window.innerWidth - cx);
+  const maxDy = Math.max(cy, window.innerHeight - cy);
+
+  const x = maxDx > 0 ? clamp((clientX - cx) / maxDx, -1, 1) : 0;
+  const y = maxDy > 0 ? clamp((clientY - cy) / maxDy, -1, 1) : 0;
+
+  logo.style.setProperty('--x', x.toFixed(3));
+  logo.style.setProperty('--y', y.toFixed(3));
+}
+
+function resetLogoPointerVars() {
+  if (!logo) return;
+  logo.style.setProperty('--x', '0');
+  logo.style.setProperty('--y', '0');
+}
+
+window.addEventListener(
+  'pointermove',
+  (e) => {
+    setLogoPointerVars(e.clientX, e.clientY);
+  },
+  { passive: true }
+);
+
+window.addEventListener('blur', () => resetLogoPointerVars());
 
 document.addEventListener('click', () => {
   setRandomFace();
@@ -111,6 +196,20 @@ function getRampColors(rampName: string): Record<string, string> {
   return colors;
 }
 
+function roundColorChannels(color: any, precision = 3): any {
+  const rounded: any = { mode: color.mode };
+  for (const key in color) {
+    if (key === 'mode') continue;
+    const value = color[key];
+    if (typeof value === 'number') {
+      rounded[key] = Number(value.toFixed(precision));
+    } else {
+      rounded[key] = value;
+    }
+  }
+  return rounded;
+}
+
 function formatColor(color: Oklch, format: ColorFormat): string {
   switch (format) {
     case 'hex':
@@ -118,11 +217,11 @@ function formatColor(color: Oklch, format: ColorFormat): string {
     case 'oklab': {
       const oklab = converter('oklab');
       const converted = oklab(color);
-      return formatCssRounded(converted) || 'oklab(0 0 0)';
+      return formatCss(roundColorChannels(converted, 3)) || 'oklab(0 0 0)';
     }
     case 'oklch':
     default:
-      return formatCssRounded(color) || 'oklch(0 0 0)';
+      return formatCss(roundColorChannels(color, 3)) || 'oklch(0 0 0)';
   }
 }
 
@@ -147,7 +246,7 @@ function renderRampBar(rampName: string, matchedShade: string): string {
       const bg = colors[s] || '#000';
       const fg = isLightColor(bg) ? '#18181b' : '#fafafa';
       const matched = s === matchedShade ? 'matched' : '';
-      return `<div class="shade-block ${matched}" style="background:${bg};color:${fg}">${s}</div>`;
+      return `<div class="shade-block ${matched}" style="--cc:${bg};color:${fg}">${s}</div>`;
     })
     .join('');
 }
@@ -178,9 +277,7 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
   if (src1) {
     const w1 = result.sources.length === 2 ? src1.weight : 1;
     row1.innerHTML = `
-      <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(
-      0
-    )}%</span></div>
+      <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(0)}%</span></div>
       <div class="ramp-bar">${renderRampBar(src1.name, result.matchedShade)}</div>
     `;
   }
@@ -202,12 +299,12 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
     if (!oklchColor) continue;
 
     const hex = formatHex(oklchColor) || '#000';
-    const css = formatCssRounded(oklchColor) || '';
+    const css = formatCss(oklchColor) || '';
 
     const div = document.createElement('div');
     div.className = `shade ${isLightColor(hex) ? 'dark-text' : 'light-text'}`;
     if (shade === result.matchedShade) div.classList.add('matched');
-    div.style.background = hex;
+    div.style.setProperty('--cc', css);
     div.innerHTML = `<div class="shade__label"><span class="shade-key">${shade}</span><span class="shade-value">${hex}</span></div>`;
     div.title = `Click to copy ${css}`;
     div.addEventListener('click', () => {
@@ -225,9 +322,7 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
   if (src2) {
     const w2 = result.sources.length === 2 ? src2.weight : 0;
     row3.innerHTML = `
-      <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(
-      0
-    )}%</span></div>
+      <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(0)}%</span></div>
       <div class="ramp-bar">${renderRampBar(src2.name, result.matchedShade)}</div>
     `;
   }
@@ -287,9 +382,7 @@ function updatePalette(color: string) {
       result.sources
         .map(
           (r) =>
-            `<span class="ramp-name">${r.name}</span> <span class="ramp-weight">(${(
-              r.weight * 100
-            ).toFixed(0)}%)</span>`
+            `<span class="ramp-name">${r.name}</span> <span class="ramp-weight">(${(r.weight * 100).toFixed(0)}%)</span>`
         )
         .join(' + ') + ` @ shade <strong>${result.matchedShade}</strong>`;
 
@@ -304,12 +397,12 @@ function updatePalette(color: string) {
       if (!oklchColor) continue;
 
       const hex = formatHex(oklchColor) || '#000';
-      const css = formatCssRounded(oklchColor) || '';
+      const css = formatCss(oklchColor) || '';
 
       const div = document.createElement('div');
       div.className = `shade ${isLightColor(hex) ? 'dark-text' : 'light-text'}`;
       if (shade === result.matchedShade) div.classList.add('matched');
-      div.style.background = hex;
+      div.style.setProperty('--cc', css);
       div.innerHTML = `<div class="shade__label"><span class="shade-key">${shade}</span><span class="shade-value">${hex}</span></div>`;
       div.title = `Click to copy ${css}`;
       div.addEventListener('click', () => {
