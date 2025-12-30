@@ -2,7 +2,7 @@
 
   A mini-library to transform any color into a full palette, based on the perceptual "DNA" of any design system.
 
-![dittoTones.png](dittoTones.png)
+![dittotones.png](dittotones.png)
 
 Demo: https://meodai.github.io/dittoTones/
 
