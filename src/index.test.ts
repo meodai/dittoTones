@@ -387,6 +387,15 @@ describe('DittoTones', () => {
       const result = ditto.generate('#000000');
       expect(result.scale).toBeDefined();
       expect(Object.keys(result.scale).length).toBe(10);
+      // If matched shade is black, all darker shades should be black.
+      // Lighter shades might not be black if the matched shade wasn't the lightest one.
+      // In our test ramps, '900' is L=0.1. If we match '900' to L=0, then '900' is 0.
+      // But '50' (L=0.98) will be interpolated between 0 and 1.
+      // It won't be 0.
+      
+      // Let's just check that the matched shade is black.
+      const matchedColor = result.scale[result.matchedShade];
+      expect(matchedColor.l).toBe(0);
     });
 
     it('should handle pure white', () => {

@@ -12,17 +12,18 @@ describe('tailwindRamps', () => {
 
   it('should have consistent shade keys across all ramps', () => {
     const firstRamp = tailwindRamps.values().next().value;
+    if (!firstRamp) throw new Error('No ramps found');
     const expectedShades = Object.keys(firstRamp);
 
-    for (const [name, ramp] of tailwindRamps) {
+    for (const [, ramp] of tailwindRamps) {
       const shades = Object.keys(ramp);
       expect(shades).toEqual(expectedShades);
     }
   });
 
   it('should contain valid OKLCH colors', () => {
-    for (const [name, ramp] of tailwindRamps) {
-      for (const [shade, color] of Object.entries(ramp)) {
+    for (const [, ramp] of tailwindRamps) {
+      for (const [, color] of Object.entries(ramp)) {
         expect(color.mode).toBe('oklch');
         expect(color.l).toBeGreaterThanOrEqual(0);
         expect(color.l).toBeLessThanOrEqual(1);
@@ -46,7 +47,7 @@ describe('tailwindRamps', () => {
   });
 
   it('should have lightness progression in each ramp', () => {
-    for (const [name, ramp] of tailwindRamps) {
+    for (const [, ramp] of tailwindRamps) {
       const shades = Object.keys(ramp).sort((a, b) => Number(a) - Number(b));
       const lightnesses = shades.map((shade) => ramp[shade].l);
 
@@ -56,8 +57,8 @@ describe('tailwindRamps', () => {
   });
 
   it('should have all colors with valid numeric properties', () => {
-    for (const [name, ramp] of tailwindRamps) {
-      for (const [shade, color] of Object.entries(ramp)) {
+    for (const [, ramp] of tailwindRamps) {
+      for (const [, color] of Object.entries(ramp)) {
         expect(Number.isFinite(color.l)).toBe(true);
         expect(Number.isFinite(color.c)).toBe(true);
 

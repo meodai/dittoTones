@@ -12,20 +12,21 @@ describe('radixRamps', () => {
 
   it('should have consistent shade keys across all ramps', () => {
     const firstRamp = radixRamps.values().next().value;
+    if (!firstRamp) throw new Error('No ramps found');
     const expectedShades = Object.keys(firstRamp).sort((a, b) => Number(a) - Number(b));
 
     // Radix uses 1-12 scale
     expect(expectedShades).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']);
 
-    for (const [name, ramp] of radixRamps) {
+    for (const [, ramp] of radixRamps) {
       const shades = Object.keys(ramp).sort((a, b) => Number(a) - Number(b));
       expect(shades).toEqual(expectedShades);
     }
   });
 
   it('should contain valid OKLCH colors', () => {
-    for (const [name, ramp] of radixRamps) {
-      for (const [shade, color] of Object.entries(ramp)) {
+    for (const [, ramp] of radixRamps) {
+      for (const [, color] of Object.entries(ramp)) {
         expect(color.mode).toBe('oklch');
         expect(color.l).toBeGreaterThanOrEqual(0);
         expect(color.l).toBeLessThanOrEqual(1);
@@ -49,7 +50,7 @@ describe('radixRamps', () => {
   });
 
   it('should have lightness progression in each ramp', () => {
-    for (const [name, ramp] of radixRamps) {
+    for (const [, ramp] of radixRamps) {
       const shades = Object.keys(ramp).sort((a, b) => Number(a) - Number(b));
       const lightnesses = shades.map((shade) => ramp[shade].l);
 
@@ -85,8 +86,8 @@ describe('radixRamps', () => {
   });
 
   it('should have all colors with valid numeric properties', () => {
-    for (const [name, ramp] of radixRamps) {
-      for (const [shade, color] of Object.entries(ramp)) {
+    for (const [, ramp] of radixRamps) {
+      for (const [, color] of Object.entries(ramp)) {
         expect(Number.isFinite(color.l)).toBe(true);
         expect(Number.isFinite(color.c)).toBe(true);
 
@@ -99,7 +100,7 @@ describe('radixRamps', () => {
 
   it('should correctly parse color names from keys', () => {
     // Test that the parseRamp function correctly extracts numbers from Radix keys
-    for (const [name, ramp] of radixRamps) {
+    for (const [, ramp] of radixRamps) {
       const shades = Object.keys(ramp);
 
       // All shade keys should be numeric strings
