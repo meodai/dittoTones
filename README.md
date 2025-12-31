@@ -1,6 +1,6 @@
 # dittoTones 🟣
 
-  A mini-library to transform any color into a full palette, based on the perceptual "DNA" of any design system.
+A mini-library to transform any color into a full palette, based on the perceptual "DNA" of any design system.
 
 ![dittotones.png](dittotones.png)
 

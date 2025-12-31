@@ -7,13 +7,7 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'dist/',
-        'src/demo.ts',
-        'src/ramps/raw/**',
-        '**/*.config.ts',
-      ],
+      exclude: ['node_modules/', 'dist/', 'src/demo.ts', 'src/ramps/raw/**', '**/*.config.ts'],
     },
   },
 });

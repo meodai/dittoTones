@@ -43,7 +43,7 @@ describe('radixRamps', () => {
 
     // Check for some common Radix colors
     const commonColors = ['gray', 'blue', 'red', 'green', 'yellow', 'purple'];
-    const foundColors = commonColors.filter(color => rampNames.includes(color));
+    const foundColors = commonColors.filter((color) => rampNames.includes(color));
 
     expect(foundColors.length).toBeGreaterThan(0);
   });
@@ -51,7 +51,7 @@ describe('radixRamps', () => {
   it('should have lightness progression in each ramp', () => {
     for (const [name, ramp] of radixRamps) {
       const shades = Object.keys(ramp).sort((a, b) => Number(a) - Number(b));
-      const lightnesses = shades.map(shade => ramp[shade].l);
+      const lightnesses = shades.map((shade) => ramp[shade].l);
 
       // First shade should generally be lighter than last shade
       // (Radix has specific semantic scales)
@@ -61,7 +61,7 @@ describe('radixRamps', () => {
 
   it('should have neutral ramps with low chroma', () => {
     const neutrals = ['gray', 'mauve', 'slate', 'sage', 'olive', 'sand'];
-    const availableNeutrals = neutrals.filter(name => radixRamps.has(name));
+    const availableNeutrals = neutrals.filter((name) => radixRamps.has(name));
 
     expect(availableNeutrals.length).toBeGreaterThan(0);
 

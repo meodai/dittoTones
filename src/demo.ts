@@ -261,8 +261,8 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
     const w1 = result.sources.length === 2 ? src1.weight : 1;
     row1.innerHTML = `
       <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(
-      0
-    )}%</span></div>
+        0
+      )}%</span></div>
       <div class="ramp-bar">${renderRampBar(src1.name, result.matchedShade)}</div>
     `;
   }
@@ -308,8 +308,8 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
     const w2 = result.sources.length === 2 ? src2.weight : 0;
     row3.innerHTML = `
       <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(
-      0
-    )}%</span></div>
+        0
+      )}%</span></div>
       <div class="ramp-bar">${renderRampBar(src2.name, result.matchedShade)}</div>
     `;
   }

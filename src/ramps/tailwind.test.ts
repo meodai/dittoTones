@@ -40,7 +40,7 @@ describe('tailwindRamps', () => {
 
     // Check for some common Tailwind colors
     const commonColors = ['slate', 'red', 'blue', 'green', 'yellow'];
-    const hasCommonColors = commonColors.some(color => rampNames.includes(color));
+    const hasCommonColors = commonColors.some((color) => rampNames.includes(color));
 
     expect(hasCommonColors).toBe(true);
   });
@@ -48,7 +48,7 @@ describe('tailwindRamps', () => {
   it('should have lightness progression in each ramp', () => {
     for (const [name, ramp] of tailwindRamps) {
       const shades = Object.keys(ramp).sort((a, b) => Number(a) - Number(b));
-      const lightnesses = shades.map(shade => ramp[shade].l);
+      const lightnesses = shades.map((shade) => ramp[shade].l);
 
       // First shade should be lighter than last shade
       expect(lightnesses[0]).toBeGreaterThan(lightnesses[lightnesses.length - 1]);
