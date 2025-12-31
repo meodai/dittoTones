@@ -7,7 +7,7 @@ import { waDefaultRamps } from './ramps/wa-default';
 import { waBrightRamps } from './ramps/wa-bright';
 import { shoelaceRamps } from './ramps/shoelace';
 
-import { formatCss, formatHex, converter, type Oklch } from 'culori';
+import { formatCss, formatHex, converter, parse, type Oklch } from 'culori';
 
 type RampSet = 'tailwind' | 'tailwind-v3' | 'radix' | 'wa-default' | 'wa-bright' | 'shoelace';
 type ColorFormat = 'oklch' | 'oklab' | 'hex';
@@ -421,10 +421,14 @@ colorPicker.addEventListener('input', (e) => {
 });
 
 hexInput.addEventListener('input', (e) => {
-  let value = (e.target as HTMLInputElement).value;
-  if (!value.startsWith('#')) value = '#' + value;
-  if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-    colorPicker.value = value;
+  const value = (e.target as HTMLInputElement).value;
+  const parsed = parse(value);
+
+  if (parsed) {
+    const hex = formatHex(parsed);
+    if (hex) {
+      colorPicker.value = hex;
+    }
     updatePalette(value);
     setRandomFace();
   }
