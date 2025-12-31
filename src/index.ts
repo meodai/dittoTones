@@ -228,7 +228,22 @@ export class DittoTones {
       return rotated;
     }
 
-    const deltaL = target.l - generated.l;
+    // Instead of a constant shift (L + delta), we use piecewise linear interpolation
+    // anchored at 0 and 1. This prevents:
+    // 1. Lighter shades becoming too dark when the matched shade is darkened
+    // 2. Lighter shades getting clamped to white (and losing distinction) when lightened
+    const scaleL = (l: number) => {
+      if (Math.abs(l - generated.l) < 0.000001) return target.l;
+
+      if (l < generated.l) {
+        if (generated.l <= 0.000001) return target.l;
+        return l * (target.l / generated.l);
+      } else {
+        if (generated.l >= 0.999999) return target.l;
+        return target.l + ((l - generated.l) * (1 - target.l)) / (1 - generated.l);
+      }
+    };
+
     const targetC = target.c ?? 0;
     const generatedC = generated.c ?? 0;
 
@@ -245,7 +260,7 @@ export class DittoTones {
     for (const [shade, color] of Object.entries(rotated)) {
       scale[shade] = {
         mode: 'oklch',
-        l: Math.max(0, Math.min(1, color.l + deltaL)),
+        l: Math.max(0, Math.min(1, scaleL(color.l))),
         c: Math.max(0, scaleC(color.c ?? 0)),
         h: color.h,
       };

@@ -300,6 +300,71 @@ describe('DittoTones', () => {
     });
   });
 
+  describe('Lightness Interpolation', () => {
+    it('should preserve white point when darkening a ramp', () => {
+      const customRamp: Ramp = {
+        '1': { mode: 'oklch', l: 0.95, c: 0.02, h: 240 }, // White-ish
+        '5': { mode: 'oklch', l: 0.50, c: 0.20, h: 240 }, // Mid
+        '9': { mode: 'oklch', l: 0.05, c: 0.02, h: 240 }, // Black-ish
+      };
+      
+      const customDitto = new DittoTones({ 
+        ramps: new Map([['custom', customRamp]]) 
+      });
+      
+      // Match shade '5' (L=0.5) with a darker color (L=0.3)
+      // We ensure it matches '5' by keeping C=0.2.
+      const input = 'oklch(0.3 0.2 240)';
+      const res = customDitto.generate(input);
+      
+      expect(res.matchedShade).toBe('5');
+      expect(res.scale['5'].l).toBeCloseTo(0.3, 4);
+      
+      // Shade '1' (L=0.95) should be interpolated between matched (0.3) and white (1.0)
+      // Original '1' is at 0.95 relative to '5' at 0.5.
+      // It is (0.95 - 0.5) / (1 - 0.5) = 0.9 of the way from mid to white.
+      // New '1' should be 0.3 + 0.9 * (1 - 0.3) = 0.3 + 0.63 = 0.93.
+      // Linear shift would be 0.95 - 0.2 = 0.75.
+      
+      expect(res.scale['1'].l).toBeGreaterThan(0.9);
+      expect(res.scale['1'].l).toBeCloseTo(0.93, 2);
+    });
+
+    it('should prevent clamping when lightening a ramp', () => {
+      const customRamp: Ramp = {
+        '1': { mode: 'oklch', l: 0.90, c: 0.02, h: 240 },
+        '2': { mode: 'oklch', l: 0.95, c: 0.02, h: 240 },
+        '5': { mode: 'oklch', l: 0.50, c: 0.20, h: 240 },
+      };
+      
+      const customDitto = new DittoTones({ 
+        ramps: new Map([['custom', customRamp]]) 
+      });
+      
+      // Match shade '5' (L=0.5) with a lighter color (L=0.6)
+      // Linear shift would be +0.1.
+      // '1' would become 1.0. '2' would become 1.05 (clamped to 1).
+      // They would lose distinction.
+      const input = 'oklch(0.6 0.2 240)';
+      const res = customDitto.generate(input);
+      
+      expect(res.matchedShade).toBe('5');
+      expect(res.scale['5'].l).toBeCloseTo(0.6, 4);
+      
+      // '1' (0.9) is 0.8 of the way from 0.5 to 1.
+      // New '1' should be 0.6 + 0.8 * (1 - 0.6) = 0.6 + 0.32 = 0.92.
+      expect(res.scale['1'].l).toBeCloseTo(0.92, 2);
+      
+      // '2' (0.95) is 0.9 of the way from 0.5 to 1.
+      // New '2' should be 0.6 + 0.9 * (1 - 0.6) = 0.6 + 0.36 = 0.96.
+      expect(res.scale['2'].l).toBeCloseTo(0.96, 2);
+      
+      // Ensure they are distinct
+      expect(res.scale['2'].l).toBeGreaterThan(res.scale['1'].l);
+      expect(res.scale['2'].l).toBeLessThan(1);
+    });
+  });
+
   describe('Edge cases', () => {
     it('should handle pure black', () => {
       const result = ditto.generate('#000000');
