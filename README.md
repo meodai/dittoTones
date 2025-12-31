@@ -73,8 +73,8 @@ interface GenerateResult {
 3. **Find closest match** — finds the nearest ramp color by Euclidean distance in OKLCH (`diff`)
 4. **Pick strategy** — `exact` if `diff` is below a small threshold, otherwise `single` (one ramp) or `blend` (two ramps; second ramp chosen by closest hue at the matched shade)
 5. **Rotate hue + correct L/C** — sets the target hue across the scale, then adjusts lightness and chroma:
-    * **Lightness**: Uses piecewise linear interpolation anchored at 0 (black) and 1 (white). This ensures the matched shade hits the target lightness exactly, while preventing lighter shades from being clamped to white or becoming too dark.
-    * **Chroma**: Uses a hybrid approach. If the target chroma is higher than the reference, it applies **linear scaling** for lower chroma values (preserving delicate pastels) and **power curve scaling** for higher chroma values (preventing oversaturation in the most colorful shades). If the target chroma is lower, it uses a constant offset.
+   - **Lightness**: Uses piecewise linear interpolation anchored at 0 (black) and 1 (white). This ensures the matched shade hits the target lightness exactly, while preventing lighter shades from being clamped to white or becoming too dark.
+   - **Chroma**: Uses a hybrid approach. If the target chroma is higher than the reference, it applies **linear scaling** for lower chroma values (preserving delicate pastels) and **power curve scaling** for higher chroma values (preventing oversaturation in the most colorful shades). If the target chroma is lower, it uses a constant offset.
 
 ## Custom ramps
 

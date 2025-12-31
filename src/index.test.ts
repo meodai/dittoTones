@@ -366,7 +366,7 @@ describe('DittoTones', () => {
       const res = customDitto.generate(input);
 
       expect(res.matchedShade).toBe('5');
-      
+
       // Verify matched shade hits the target exactly
       expect(res.scale['5'].l).toBeCloseTo(0.6, 4);
       expect(res.scale['5'].c).toBeCloseTo(0.2, 4);
@@ -439,7 +439,7 @@ describe('DittoTones', () => {
       expect(shade50.c).toBeLessThan(0.05); // Should stay relatively low
 
       // And ensure the peak chroma isn't exploding
-      const maxChroma = Math.max(...Object.values(result.scale).map(c => c.c || 0));
+      const maxChroma = Math.max(...Object.values(result.scale).map((c) => c.c || 0));
       // Input was 0.25, max shouldn't be wildly higher than that
       expect(maxChroma).toBeLessThan(0.35);
     });
