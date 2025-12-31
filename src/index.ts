@@ -250,7 +250,15 @@ export class DittoTones {
     let scaleC: (c: number) => number;
     if (generatedC > DittoTones.NEUTRAL_CHROMA) {
       const ratio = targetC / generatedC;
-      scaleC = (c) => c * ratio;
+      if (targetC > generatedC) {
+        const k = Math.log(targetC) / Math.log(generatedC);
+        scaleC = (c) => {
+          if (c <= 0) return 0;
+          return Math.min(c * ratio, Math.pow(c, k));
+        };
+      } else {
+        scaleC = (c) => c * ratio;
+      }
     } else {
       const diff = targetC - generatedC;
       scaleC = (c) => c + diff;

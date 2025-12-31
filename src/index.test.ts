@@ -366,7 +366,11 @@ describe('DittoTones', () => {
       const res = customDitto.generate(input);
 
       expect(res.matchedShade).toBe('5');
+      
+      // Verify matched shade hits the target exactly
       expect(res.scale['5'].l).toBeCloseTo(0.6, 4);
+      expect(res.scale['5'].c).toBeCloseTo(0.2, 4);
+      expect(res.scale['5'].h).toBeCloseTo(240, 4);
 
       // '1' (0.9) is 0.8 of the way from 0.5 to 1.
       // New '1' should be 0.6 + 0.8 * (1 - 0.6) = 0.6 + 0.32 = 0.92.
@@ -413,6 +417,31 @@ describe('DittoTones', () => {
       const result = ditto.generate('oklch(0.5 0 0)');
       expect(result.method).toBe('exact');
       expect(result.sources[0].name).toBe('gray');
+    });
+
+    it('should handle high chroma inputs without exploding saturation', () => {
+      // Using a high chroma red similar to the issue report
+      // oklch(0.619 0.25 28.1)
+      const inputColor = 'oklch(0.6191564705137876 0.2504590219988421 28.136255553835348)';
+      const result = ditto.generate(inputColor);
+
+      // The matched shade should be exact
+      const matchedColor = result.scale[result.matchedShade];
+      expect(matchedColor.l).toBeCloseTo(0.619156, 4);
+      expect(matchedColor.c).toBeCloseTo(0.250459, 4);
+      expect(matchedColor.h).toBeCloseTo(28.136255, 4);
+
+      // Check lighter shades - they should not be excessively saturated
+      // In our test red ramp, shade 50 has chroma 0.03.
+      // The input (0.25) is slightly higher than the matched shade 500 (0.22).
+      // We want to ensure lighter shades don't get blown out.
+      const shade50 = result.scale['50'];
+      expect(shade50.c).toBeLessThan(0.05); // Should stay relatively low
+
+      // And ensure the peak chroma isn't exploding
+      const maxChroma = Math.max(...Object.values(result.scale).map(c => c.c || 0));
+      // Input was 0.25, max shouldn't be wildly higher than that
+      expect(maxChroma).toBeLessThan(0.35);
     });
   });
 });
