@@ -230,7 +230,7 @@ describe('DittoTones', () => {
     it('should generate valid OKLCH colors in scale', () => {
       const result = ditto.generate('#ff6b35');
 
-      for (const [shade, color] of Object.entries(result.scale)) {
+      for (const [, color] of Object.entries(result.scale)) {
         expect(color.mode).toBe('oklch');
         expect(color.l).toBeGreaterThanOrEqual(0);
         expect(color.l).toBeLessThanOrEqual(1);
@@ -392,7 +392,7 @@ describe('DittoTones', () => {
       // In our test ramps, '900' is L=0.1. If we match '900' to L=0, then '900' is 0.
       // But '50' (L=0.98) will be interpolated between 0 and 1.
       // It won't be 0.
-      
+
       // Let's just check that the matched shade is black.
       const matchedColor = result.scale[result.matchedShade];
       expect(matchedColor.l).toBe(0);
