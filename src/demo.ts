@@ -1,10 +1,15 @@
 import { DittoTones } from './index';
+
 import { tailwindRamps } from './ramps/tailwind';
 import { tailwindV3Ramps } from './ramps/tailwind-v3';
 import { radixRamps } from './ramps/radix';
+import { waDefaultRamps } from './ramps/wa-default';
+import { waBrightRamps } from './ramps/wa-bright';
+import { shoelaceRamps } from './ramps/shoelace';
+
 import { formatCss, formatHex, converter, type Oklch } from 'culori';
 
-type RampSet = 'tailwind' | 'tailwind-v3' | 'radix';
+type RampSet = 'tailwind' | 'tailwind-v3' | 'radix' | 'wa-default' | 'wa-bright' | 'shoelace';
 type ColorFormat = 'oklch' | 'oklab' | 'hex';
 
 let currentRampSet: RampSet = 'tailwind';
@@ -26,56 +31,12 @@ const toast = document.getElementById('toast')!;
 
 const face = document.querySelector<HTMLElement>('[data-face]')!;
 const logo = document.querySelector<HTMLElement>('.logo');
-const eyes = [
-  '✿',
-  '╹',
-  'T',
-  '个',
-  '≖',
-  'ꈍ',
-  'ʘ',
-  '◕',
-  '•',
-  'ಠ',
-  '눈',
-  '◉',
-  '◔',
-  'Φ',
-  '⊙',
-  '⨀',
-  '☉',
-  'σ',
-  'ф',
-  '￣',
-  '✧',
-] as const;
-const mouths = [
-  'ʖ̯ ',
-  'ٹ',
-  '〇',
-  'θ',
-  'ᴥ',
-  'ゝ',
-  'з',
-  'ᴗ',
-  '‿',
-  '_',
-  'ω',
-  '▽',
-  '△',
-  '෴',
-  'o',
-  '.',
-  '﹏',
-  'ᆺ',
-  'ロ',
-  'Д',
-  '︿',
-  '～',
-  '∀',
-  '_ʖ',
-  '(ｴ)',
-] as const;
+
+// prettier-ignore
+const eyes = ['✿', '╹', 'T', '个', '≖', 'ꈍ', 'ʘ', '◕', '•', 'ಠ', '눈', '◉', '◔', 'Φ', '⊙', '⨀', '☉', 'σ', 'ф', '￣', '✧'] as const;
+// prettier-ignore
+const mouths = ['ʖ̯ ', 'ٹ', '〇', 'θ', 'ᴥ', 'ゝ', 'з', 'ᴗ', '‿', '_', 'ω', '▽', '△', '෴', 'o', '.', '﹏', 'ᆺ', 'ロ', 'Д', '︿', '～', '∀', '_ʖ', '(ｴ)'] as const;
+// prettier-ignore
 const cheeks = ['♪', '˘', '˚', '•', '♥', '?'] as const;
 
 type Eye = (typeof eyes)[number];
@@ -161,15 +122,36 @@ document.addEventListener('click', () => {
 });
 
 function getShades(): string[] {
-  return currentRampSet === 'radix'
-    ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
-    : ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+  switch (currentRampSet) {
+    case 'tailwind':
+    case 'tailwind-v3':
+      return ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+    case 'wa-default':
+    case 'wa-bright':
+    case 'shoelace':
+      return ['95', '90', '80', '70', '60', '50', '40', '30', '20', '10', '05'];
+    case 'radix':
+    default:
+      return ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
+  }
 }
 
 function getCurrentRamps(): Map<string, Record<string, Oklch>> {
-  if (currentRampSet === 'tailwind') return tailwindRamps;
-  if (currentRampSet === 'tailwind-v3') return tailwindV3Ramps;
-  return radixRamps;
+  switch (currentRampSet) {
+    case 'tailwind':
+      return tailwindRamps;
+    case 'tailwind-v3':
+      return tailwindV3Ramps;
+    case 'wa-default':
+      return waDefaultRamps;
+    case 'wa-bright':
+      return waBrightRamps;
+    case 'shoelace':
+      return shoelaceRamps;
+    case 'radix':
+    default:
+      return radixRamps;
+  }
 }
 
 function isLightColor(hex: string) {
@@ -232,7 +214,8 @@ function toCSS(
 ) {
   const info = result.sources.map((r) => `${r.name} (${(r.weight * 100).toFixed(0)}%)`).join(' + ');
   const lines = [`  /* ${name}: ${result.method} from ${info} @ shade ${result.matchedShade} */`];
-  for (const [shade, color] of Object.entries(result.scale)) {
+  const pairs = Object.entries(result.scale).sort((a, b) => (Number(a[0]) > Number(b[0]) ? 1 : -1));
+  for (const [shade, color] of pairs) {
     lines.push(`  --${name}-${shade}: ${formatColor(color, format)};`);
   }
   return `:root {\n${lines.join('\n')}\n}`;
@@ -277,7 +260,9 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
   if (src1) {
     const w1 = result.sources.length === 2 ? src1.weight : 1;
     row1.innerHTML = `
-      <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(0)}%</span></div>
+      <div class="ramp-label">${src1.name}<br><span class="weight">${(w1 * 100).toFixed(
+      0
+    )}%</span></div>
       <div class="ramp-bar">${renderRampBar(src1.name, result.matchedShade)}</div>
     `;
   }
@@ -299,7 +284,7 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
     if (!oklchColor) continue;
 
     const hex = formatHex(oklchColor) || '#000';
-    const css = formatCss(oklchColor) || '';
+    const css = formatCss(roundColorChannels(oklchColor, 3)) || '#000';
 
     const div = document.createElement('div');
     div.className = `shade ${isLightColor(hex) ? 'dark-text' : 'light-text'}`;
@@ -322,7 +307,9 @@ function renderBlendViz(result: ReturnType<typeof ditto.generate>) {
   if (src2) {
     const w2 = result.sources.length === 2 ? src2.weight : 0;
     row3.innerHTML = `
-      <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(0)}%</span></div>
+      <div class="ramp-label">${src2.name}<br><span class="weight">${(w2 * 100).toFixed(
+      0
+    )}%</span></div>
       <div class="ramp-bar">${renderRampBar(src2.name, result.matchedShade)}</div>
     `;
   }
@@ -382,7 +369,9 @@ function updatePalette(color: string) {
       result.sources
         .map(
           (r) =>
-            `<span class="ramp-name">${r.name}</span> <span class="ramp-weight">(${(r.weight * 100).toFixed(0)}%)</span>`
+            `<span class="ramp-name">${r.name}</span> <span class="ramp-weight">(${(
+              r.weight * 100
+            ).toFixed(0)}%)</span>`
         )
         .join(' + ') + ` @ shade <strong>${result.matchedShade}</strong>`;
 

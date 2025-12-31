@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -64,7 +64,6 @@
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
-        
       }
 
       @media (prefers-color-scheme: light) {
@@ -154,14 +153,15 @@
         color: var(--c-text-alt);
         letter-spacing: -0.025em;
       }
-      h1, h2 {
+      h1,
+      h2 {
         position: relative;
 
         &::after {
           height: 0.5px;
           content: '';
           position: absolute;
-          bottom: -.75rem;
+          bottom: -0.75rem;
           width: 200vw;
           background: var(--c-text);
           left: 50%;
@@ -213,12 +213,14 @@
         margin-left: -3rem;
         margin-right: -3rem;
         box-sizing: border-box;
-        background-image: radial-gradient(circle at 50% 50%,
- transparent 0% 35%, var(--c-bg) 35% 100%);
+        background-image: radial-gradient(
+          circle at 50% 50%,
+          transparent 0% 35%,
+          var(--c-bg) 35% 100%
+        );
         background-repeat: repeat;
         background-size: 3px 3px;
         z-index: 1000;
-        
       }
       .color-input-wrapper {
         display: flex;
@@ -307,7 +309,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-top: -1.5rem
+        margin-top: -1.5rem;
       }
       .section__title {
         font-size: 1.5rem;
@@ -350,8 +352,7 @@
           padding-right: 0;
           display: flex;
           justify-content: space-between;
-
-        }      
+        }
       }
       .ramp-label .weight {
         color: var(--c-hightlight);
@@ -416,14 +417,13 @@
         .shade {
           position: relative;
           border: 2px solid var(--c-bg);
-          box-shadow: 0 0 0 .5px color-mix(in srgb, var(--c-text) 50%, transparent);
-          
+          box-shadow: 0 0 0 0.5px color-mix(in srgb, var(--c-text) 50%, transparent);
+
           &.matched {
-            box-shadow: 0 0 .5px color-mix(in srgb, var(--c-text) 50%, transparent), 
-                        0 0 0 3px var(--c-bg),
-                        0 0 0 3.5px color-mix(in srgb, var(--c-hightlight) 30%, transparent),
-                        0 0 1rem var(--cc);
-          
+            box-shadow: 0 0 0.5px color-mix(in srgb, var(--c-text) 50%, transparent),
+              0 0 0 3px var(--c-bg),
+              0 0 0 3.5px color-mix(in srgb, var(--c-hightlight) 30%, transparent),
+              0 0 1rem var(--cc);
           }
         }
       }
@@ -458,7 +458,7 @@
       }
       .matched {
         box-shadow: 0 0 0 3px var(--c-bg),
-                    0 0 0 3.5px color-mix(in srgb, var(--c-hightlight) 30%, transparent);
+          0 0 0 3.5px color-mix(in srgb, var(--c-hightlight) 30%, transparent);
       }
       .shade-key {
         display: flex;
@@ -482,7 +482,7 @@
         margin-top: -2.25rem;
         margin-bottom: -2rem;
         padding: 3rem;
-        padding-bottom: 4.5rem; 
+        padding-bottom: 4.5rem;
         font-size: 0.8rem;
         color: var(--c-text-alt);
         overflow-x: auto;
@@ -493,10 +493,13 @@
 
         border-bottom: 0.5px solid color-mix(in srgb, var(--c-text) 50%, transparent);
 
-        background-image: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--c-text), transparent 75%) 0% 35%, transparent 35% 100%);
+        background-image: radial-gradient(
+          circle at 50% 50%,
+          color-mix(in srgb, var(--c-text), transparent 75%) 0% 35%,
+          transparent 35% 100%
+        );
         background-repeat: repeat;
         background-size: 3px 3px;
-
       }
       .toast {
         position: fixed;
@@ -543,10 +546,7 @@
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(
-          calc(-45% + (var(--x, 0) * 1em)),
-          calc(-55% + (var(--y, 0) * 1em))
-        );
+        transform: translate(calc(-45% + (var(--x, 0) * 1em)), calc(-55% + (var(--y, 0) * 1em)));
         will-change: transform;
         color: var(--c-text-alt);
         font-size: 0.3em;
@@ -565,7 +565,7 @@
       .kofi {
         display: block;
         width: 3rem;
-        margin-left: calc(var(--s-inset) - .5rem);
+        margin-left: calc(var(--s-inset) - 0.5rem);
         img {
           width: 100%;
         }
@@ -599,6 +599,9 @@
           <option value="tailwind">Tailwind v4</option>
           <option value="tailwind-v3">Tailwind v3</option>
           <option value="radix">Radix 1.1.0</option>
+          <option value="wa-default">Web Awesome Default</option>
+          <option value="wa-bright">Web Awesome Bright</option>
+          <option value="shoelace">Shoelace</option>
         </select>
       </div>
 
@@ -611,10 +614,7 @@
         <div class="palette-header">
           <h2 class="section__title" id="paletteTitle">Generated Palette</h2>
           <div class="section__tools">
-            <select
-              id="formatSelector"
-              class="ramp-selector"
-            >
+            <select id="formatSelector" class="ramp-selector">
               <option value="oklch">oklch</option>
               <option value="oklab">oklab</option>
               <option value="hex">hex</option>
@@ -638,21 +638,21 @@
       <aside class="section">
         <h2 class="section__title">About</h2>
         <p class="description">
-          Created by <a href="https://elastiq.ch">Elastiq / David Aerne</a> under the MIT License. 
+          Created by <a href="https://elastiq.ch">Elastiq / David Aerne</a> under the MIT License.
           View the source code on <a href="https://github.com/meodai/dittoTones">GitHub</a>.
         </p>
-        
+
         <h2 class="section__title">Support</h2>
         <p class="description">
-          If you find this project useful, please consider <a href="https://ko-fi.com/colorparrot" rel="noopener"
-            target="_blank">buying me a coffee</a>. It keeps my caffeine levels high enough to distinguish between #fafafa and
-          #fbfbfb.
+          If you find this project useful, please consider
+          <a href="https://ko-fi.com/colorparrot" rel="noopener" target="_blank"
+            >buying me a coffee</a
+          >. It keeps my caffeine levels high enough to distinguish between #fafafa and #fbfbfb.
         </p>
         <a href="https://ko-fi.com/colorparrot" rel="noopener" target="_blank" class="kofi">
-          <img src="https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png">
+          <img src="https://storage.ko-fi.com/cdn/brandasset/kofi_s_logo_nolabel.png" />
         </a>
       </aside>
-
     </div>
 
     <div class="toast" id="toast">Copied to clipboard!</div>
