@@ -6,10 +6,11 @@ import { radixRamps } from './ramps/radix';
 import { waDefaultRamps } from './ramps/wa-default';
 import { waBrightRamps } from './ramps/wa-bright';
 import { shoelaceRamps } from './ramps/shoelace';
+import { flexokiRamps } from './ramps/flexoki';
 
 import { formatCss, formatHex, converter, parse, type Oklch } from 'culori';
 
-type RampSet = 'tailwind' | 'tailwind-v3' | 'radix' | 'wa-default' | 'wa-bright' | 'shoelace';
+type RampSet = 'tailwind' | 'tailwind-v3' | 'radix' | 'wa-default' | 'wa-bright' | 'shoelace' | 'flexoki';
 type ColorFormat = 'oklch' | 'oklab' | 'hex';
 
 let currentRampSet: RampSet = 'tailwind';
@@ -28,6 +29,8 @@ const cssOutput = document.getElementById('cssOutput')!;
 const paletteTitle = document.getElementById('paletteTitle')!;
 const copyBtn = document.getElementById('copyBtn')!;
 const toast = document.getElementById('toast')!;
+const hueOffsetsToggle = document.getElementById('hueOffsetsToggle') as HTMLInputElement;
+const gamutMapToggle = document.getElementById('gamutMapToggle') as HTMLInputElement;
 
 const face = document.querySelector<HTMLElement>('[data-face]')!;
 const logo = document.querySelector<HTMLElement>('.logo');
@@ -126,6 +129,8 @@ function getShades(): string[] {
     case 'tailwind':
     case 'tailwind-v3':
       return ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+    case 'flexoki':
+      return ['50', '100', '150', '200', '300', '400', '500', '600', '700', '800', '850', '900', '950'];
     case 'wa-default':
     case 'wa-bright':
     case 'shoelace':
@@ -148,6 +153,8 @@ function getCurrentRamps(): Map<string, Record<string, Oklch>> {
       return waBrightRamps;
     case 'shoelace':
       return shoelaceRamps;
+    case 'flexoki':
+      return flexokiRamps;
     case 'radix':
     default:
       return radixRamps;
@@ -434,9 +441,27 @@ hexInput.addEventListener('input', (e) => {
   }
 });
 
+function rebuildDitto() {
+  ditto = new DittoTones({
+    ramps: getCurrentRamps(),
+    preserveHueOffsets: hueOffsetsToggle.checked,
+    gamutMap: gamutMapToggle.checked,
+  });
+}
+
 rampSelector.addEventListener('change', (e) => {
   currentRampSet = (e.target as HTMLSelectElement).value as RampSet;
-  ditto = new DittoTones({ ramps: getCurrentRamps() });
+  rebuildDitto();
+  updatePalette(colorPicker.value);
+});
+
+hueOffsetsToggle.addEventListener('change', () => {
+  rebuildDitto();
+  updatePalette(colorPicker.value);
+});
+
+gamutMapToggle.addEventListener('change', () => {
+  rebuildDitto();
   updatePalette(colorPicker.value);
 });
 

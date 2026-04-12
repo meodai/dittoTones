@@ -1,10 +1,14 @@
-import { oklch, parse, interpolate, differenceEuclidean, type Oklch } from 'culori';
+import { oklch, parse, interpolate, differenceEuclidean, toGamut, type Oklch } from 'culori';
 
 export type Ramp = Record<string, Oklch>;
 export type { Oklch };
 
 export interface DittoTonesOptions {
   ramps: Map<string, Ramp>;
+  /** Preserve hue offsets from reference ramps (default: false) */
+  preserveHueOffsets?: boolean;
+  /** Map output to sRGB gamut (default: false) */
+  gamutMap?: boolean;
 }
 
 export interface GenerateResult {
@@ -20,6 +24,8 @@ export class DittoTones {
   private shadeKeys: string[];
   private diff: (a: Oklch, b: Oklch) => number;
   private neutralRampName: string;
+  private preserveHueOffsets: boolean;
+  private gamutMapEnabled: boolean;
 
   private static EXACT_THRESHOLD = 0.02;
   private static NEUTRAL_CHROMA = 0.02;
@@ -39,6 +45,8 @@ export class DittoTones {
     }
 
     this.diff = differenceEuclidean('oklch');
+    this.preserveHueOffsets = options.preserveHueOffsets ?? false;
+    this.gamutMapEnabled = options.gamutMap ?? false;
     this.neutralRampName = this.findBestNeutralRamp();
   }
 
@@ -94,26 +102,21 @@ export class DittoTones {
   }
 
   private findSecondClosest(color: Oklch, shade: string, excludeRamp: string) {
-    const targetHue = color.h ?? 0;
-    let best: { rampName: string; diff: number; hueDist: number } | null = null;
+    let best: { rampName: string; diff: number } | null = null;
 
     for (const [rampName, ramp] of this.ramps) {
       if (rampName === excludeRamp) continue;
       const rampColor = ramp[shade];
       if (!rampColor || (rampColor.c ?? 0) < DittoTones.NEUTRAL_CHROMA) continue;
 
-      const rampHue = rampColor.h ?? 0;
-      let hueDist = Math.abs(targetHue - rampHue);
-      if (hueDist > 180) hueDist = 360 - hueDist;
-
       const distance = this.diff(color, rampColor as Oklch);
 
-      if (!best || hueDist < best.hueDist) {
-        best = { rampName, diff: distance, hueDist };
+      if (!best || distance < best.diff) {
+        best = { rampName, diff: distance };
       }
     }
 
-    return best ? { rampName: best.rampName, diff: best.diff } : null;
+    return best;
   }
 
   private generateNeutral(parsed: Oklch): GenerateResult {
@@ -121,11 +124,14 @@ export class DittoTones {
     const ramp = this.ramps.get(rampName)!;
     const shade = this.findClosestShadeInRamp(parsed, ramp);
 
+    // Compute actual distance to the closest neutral shade
+    const matchedInRamp = ramp[shade];
+    const diff = matchedInRamp ? this.diff(parsed, matchedInRamp as Oklch) : 0;
+
     // For neutrals, preserve any hue tint *and* chroma tint from the input.
     // Otherwise very low-chroma colors end up looking gray everywhere except the forced match shade.
     const targetHue = parsed.h ?? 0;
     const targetC = parsed.c ?? 0;
-    const matchedInRamp = ramp[shade];
     const matchedRampC = matchedInRamp?.c ?? 0;
     const deltaC = targetC - matchedRampC;
 
@@ -147,8 +153,8 @@ export class DittoTones {
     return {
       inputColor: parsed,
       matchedShade: shade,
-      method: 'exact',
-      sources: [{ name: rampName, diff: 0, weight: 1 }],
+      method: diff < DittoTones.EXACT_THRESHOLD ? 'exact' : 'single',
+      sources: [{ name: rampName, diff, weight: 1 }],
       scale,
     };
   }
@@ -187,7 +193,7 @@ export class DittoTones {
       const c1 = ramp1[shadeKey] as Oklch,
         c2 = ramp2[shadeKey] as Oklch;
       if (!c1 || !c2) continue;
-      blendedRamp[shadeKey] = interpolate([c1, c2], 'oklch')(t) as Oklch;
+      blendedRamp[shadeKey] = oklch(interpolate([c1, c2], 'oklab')(t)) as Oklch;
     }
 
     const scale = this.buildScale(blendedRamp, parsed, shade);
@@ -216,11 +222,26 @@ export class DittoTones {
 
   private buildScale(ramp: Ramp, target: Oklch, matchedShade: string): Record<string, Oklch> {
     const targetHue = target.h ?? 0;
+    const matchedPt = ramp[matchedShade];
+    const matchedHue = matchedPt?.h ?? 0;
 
     const rotated: Record<string, Oklch> = {};
     for (const [shade, pt] of Object.entries(ramp)) {
       if (!pt) continue;
-      rotated[shade] = { mode: 'oklch', l: pt.l, c: pt.c ?? 0, h: targetHue };
+      let h = targetHue;
+      if (this.preserveHueOffsets) {
+        // Preserve hue offsets from the reference ramp relative to the matched shade.
+        // Real design-system ramps often have deliberate hue shifts across the lightness
+        // range (e.g., Tailwind blues shift toward purple in dark shades).
+        const ptHue = pt.h ?? 0;
+        let hueOffset = ptHue - matchedHue;
+        if (hueOffset > 180) hueOffset -= 360;
+        if (hueOffset < -180) hueOffset += 360;
+        h = targetHue + hueOffset;
+        if (h < 0) h += 360;
+        if (h >= 360) h -= 360;
+      }
+      rotated[shade] = { mode: 'oklch', l: pt.l, c: pt.c ?? 0, h };
     }
 
     const generated = rotated[matchedShade];
@@ -251,11 +272,20 @@ export class DittoTones {
     if (generatedC > DittoTones.NEUTRAL_CHROMA) {
       const ratio = targetC / generatedC;
       if (targetC > generatedC) {
-        const k = Math.log(targetC) / Math.log(generatedC);
-        scaleC = (c) => {
-          if (c <= 0) return 0;
-          return Math.min(c * ratio, Math.pow(c, k));
-        };
+        const logGenC = Math.log(generatedC);
+        // Guard against degenerate k when generatedC is near 1.0 (log ≈ 0)
+        // or when log values would produce extreme exponents
+        if (Math.abs(logGenC) < 1e-6) {
+          scaleC = (c) => c * ratio;
+        } else {
+          const k = Math.log(targetC) / logGenC;
+          // Clamp k to a sane range to prevent extreme pow() results
+          const safeK = Math.max(-10, Math.min(10, k));
+          scaleC = (c) => {
+            if (c <= 0) return 0;
+            return Math.min(c * ratio, Math.pow(c, safeK));
+          };
+        }
       } else {
         scaleC = (c) => c * ratio;
       }
@@ -264,14 +294,16 @@ export class DittoTones {
       scaleC = (c) => c + diff;
     }
 
+    const gamutMap = this.gamutMapEnabled ? toGamut('rgb', 'oklch') : null;
     const scale: Record<string, Oklch> = {};
     for (const [shade, color] of Object.entries(rotated)) {
-      scale[shade] = {
+      const raw: Oklch = {
         mode: 'oklch',
         l: Math.max(0, Math.min(1, scaleL(color.l))),
         c: Math.max(0, scaleC(color.c ?? 0)),
         h: color.h,
       };
+      scale[shade] = gamutMap ? (oklch(gamutMap(raw)) as Oklch) : raw;
     }
 
     return scale;
