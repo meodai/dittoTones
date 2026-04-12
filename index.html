@@ -364,6 +364,35 @@
       .option-label:has(input:checked) {
         opacity: 1;
       }
+      .option-label input[type='checkbox'] {
+        appearance: none;
+        width: 1em;
+        height: 1em;
+        background: #27272a;
+        border: 1px solid #3f3f46;
+        border-radius: 2px;
+        cursor: pointer;
+        position: relative;
+      }
+      .option-label input[type='checkbox']:checked {
+        background: var(--c-hightlight);
+        border-color: var(--c-hightlight);
+      }
+      .option-label input[type='checkbox']:checked::after {
+        content: '';
+        position: absolute;
+        border-bottom: 2px solid #27272a;
+        border-left: 2px solid #27272a;
+        width: 55%;
+        height: 30%;
+        top: 15%;
+        left: 15%;
+        transform: rotate(-45deg);
+      }
+      .option-label input[type='checkbox']:focus {
+        outline: none;
+        border-color: var(--c-hightlight);
+      }
       .blend-viz {
         display: flex;
         flex-direction: column;
