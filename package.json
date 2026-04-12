@@ -22,21 +22,10 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs",
       "types": "./dist/index.d.ts"
-    },
-    "./ramps/tailwind": {
-      "import": "./dist/ramps/tailwind.js",
-      "require": "./dist/ramps/tailwind.cjs",
-      "types": "./dist/ramps/tailwind.d.ts"
-    },
-    "./ramps/radix": {
-      "import": "./dist/ramps/radix.js",
-      "require": "./dist/ramps/radix.cjs",
-      "types": "./dist/ramps/radix.d.ts"
     }
   },
   "files": [
-    "dist",
-    "src/ramps"
+    "dist"
   ],
   "devDependencies": {
     "@types/culori": "^4.0.1",

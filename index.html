@@ -340,6 +340,30 @@
         font-size: 1.5rem;
         margin-bottom: 1rem;
       }
+      .section__header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .section__header .section__title {
+        margin-bottom: 0;
+      }
+      .section__options {
+        display: flex;
+        gap: 1rem;
+        font-size: 0.85rem;
+      }
+      .option-label {
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        cursor: pointer;
+        opacity: 0.7;
+      }
+      .option-label:has(input:checked) {
+        opacity: 1;
+      }
       .blend-viz {
         display: flex;
         flex-direction: column;
@@ -673,11 +697,18 @@
           <option value="wa-default">Web Awesome Default</option>
           <option value="wa-bright">Web Awesome Bright</option>
           <option value="shoelace">Shoelace</option>
+          <option value="flexoki">Flexoki 1.0</option>
         </select>
       </div>
 
       <div class="section">
-        <h2 class="section__title">Ramp-Mix</h2>
+        <div class="section__header">
+          <h2 class="section__title">Ramp-Mix</h2>
+          <div class="section__options">
+            <label class="option-label"><input type="checkbox" id="hueOffsetsToggle"> Hue Offsets</label>
+            <label class="option-label"><input type="checkbox" id="gamutMapToggle"> Gamut Map</label>
+          </div>
+        </div>
         <div id="blendViz" class="blend-viz"></div>
       </div>
 

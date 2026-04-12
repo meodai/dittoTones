@@ -20,16 +20,10 @@ npm install dittotones
 
 ```typescript
 import { DittoTones } from 'dittotones';
-import { tailwindRamps } from 'dittotones/ramps/tailwind';
-// or
-import { radixRamps } from 'dittotones/ramps/radix';
 import { formatCss, formatHex } from 'culori';
 
-// Use Tailwind ramps (shades: 50-950)
-const ditto = new DittoTones({ ramps: tailwindRamps });
-
-// Or Radix ramps (shades: 1-12)
-const dittoRadix = new DittoTones({ ramps: radixRamps });
+// Bring your own ramps (see "Custom ramps" below)
+const ditto = new DittoTones({ ramps: myRamps });
 
 const result = ditto.generate('#F97316');
 
@@ -71,8 +65,8 @@ interface GenerateResult {
 1. **Parse input** — converts the input into `Oklch` via `culori`
 2. **Handle neutrals** — if chroma is very low, picks the “most neutral” ramp and returns it as-is
 3. **Find closest match** — finds the nearest ramp color by Euclidean distance in OKLCH (`diff`)
-4. **Pick strategy** — `exact` if `diff` is below a small threshold, otherwise `single` (one ramp) or `blend` (two ramps; second ramp chosen by closest hue at the matched shade)
-5. **Rotate hue + correct L/C** — sets the target hue across the scale, then adjusts lightness and chroma:
+4. **Pick strategy** — `exact` if `diff` is below a small threshold, otherwise `single` (one ramp) or `blend` (two ramps; second ramp chosen by Euclidean distance in OKLCH at the matched shade, blended in Cartesian OKLAB to preserve chroma)
+5. **Rotate hue + correct L/C** — sets the target hue across the scale (optionally preserving hue offsets from reference ramps), then adjusts lightness and chroma:
    - **Lightness**: Uses piecewise linear interpolation anchored at 0 (black) and 1 (white). This ensures the matched shade hits the target lightness exactly, while preventing lighter shades from being clamped to white or becoming too dark.
    - **Chroma**: Uses a hybrid approach. If the target chroma is higher than the reference, it applies **linear scaling** for lower chroma values (preserving delicate pastels) and **power curve scaling** for higher chroma values (preventing oversaturation in the most colorful shades). If the target chroma is lower, it uses a constant offset.
 
@@ -94,6 +88,22 @@ const customRamps = new Map([
 ]);
 
 const ditto = new DittoTones({ ramps: customRamps });
+```
+
+## Options
+
+```typescript
+const ditto = new DittoTones({
+  ramps: myRamps,
+  // Preserve hue shifts from reference ramps across the scale.
+  // e.g. Tailwind blues shift toward purple in dark shades.
+  // Default: false (flat hue across all shades)
+  preserveHueOffsets: true,
+  // Map output colors to sRGB gamut by reducing chroma.
+  // Prevents out-of-gamut colors when converting to hex.
+  // Default: false
+  gamutMap: true,
+});
 ```
 
 ## Dev
