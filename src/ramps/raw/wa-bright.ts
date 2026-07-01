@@ -1,4 +1,6 @@
-// https://github.dev/shoelace-style/webawesome/packages/webawesome/src/styles/color/palettes/bright.css
+// Web Awesome bright color palette — https://github.com/shoelace-style/webawesome
+// (packages/webawesome/src/styles/color/palettes/bright.css)
+// MIT License, Copyright (c) 2023 Fonticons, Inc.
 export const waBrightColors = {
   red: {
     '95': 'oklch(96.475% 0.01735 17.458)',

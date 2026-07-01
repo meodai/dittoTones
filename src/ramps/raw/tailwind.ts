@@ -1,4 +1,5 @@
-// From tailwindcss/colors.js - Tailwind CSS v4.1
+// Tailwind CSS v4.1 color palette — https://github.com/tailwindlabs/tailwindcss
+// MIT License, Copyright (c) Tailwind Labs, Inc.
 export const tailwindColors = {
   slate: {
     '50': 'oklch(98.4% 0.003 247.858)',

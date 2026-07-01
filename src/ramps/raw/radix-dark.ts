@@ -1,3 +1,5 @@
+// Radix Colors (dark scales) — https://github.com/radix-ui/colors
+// MIT License, Copyright (c) 2021-2022 Modulz
 export const grayDark = {
   gray1: '#111111',
   gray2: '#191919',

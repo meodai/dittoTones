@@ -1,4 +1,5 @@
-// Tailwind CSS v3 colors (hex values)
+// Tailwind CSS v3 color palette — https://github.com/tailwindlabs/tailwindcss
+// MIT License, Copyright (c) Tailwind Labs, Inc.
 export const tailwindV3Colors = {
   slate: {
     '50': '#f8fafc',

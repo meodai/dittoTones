@@ -1,4 +1,6 @@
-// https://github.dev/shoelace-style/webawesome/packages/webawesome/src/styles/color/palettes/shoelace.css
+// Shoelace color palette — https://github.com/shoelace-style/webawesome
+// (packages/webawesome/src/styles/color/palettes/shoelace.css)
+// MIT License, Copyright (c) 2023 Fonticons, Inc.
 export const shoelaceColors = {
   red: {
     '95': 'oklch(96.667% 0.01632 22.08)',

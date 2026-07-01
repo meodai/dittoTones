@@ -1,3 +1,5 @@
+// Radix Colors (light scales) — https://github.com/radix-ui/colors
+// MIT License, Copyright (c) 2021-2022 Modulz
 export const gray = {
   gray1: '#fcfcfc',
   gray2: '#f9f9f9',

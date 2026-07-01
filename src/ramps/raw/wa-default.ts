@@ -1,4 +1,6 @@
-// https://github.dev/shoelace-style/webawesome/packages/webawesome/src/styles/color/palettes/default.css
+// Web Awesome default color palette — https://github.com/shoelace-style/webawesome
+// (packages/webawesome/src/styles/color/palettes/default.css)
+// MIT License, Copyright (c) 2023 Fonticons, Inc.
 export const waDefaultColors = {
   red: {
     '95': 'oklch(96.667% 0.01632 22.08)',
