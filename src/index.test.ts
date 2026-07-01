@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { DittoTones, type Ramp, type Oklch } from './index';
-import { oklch, parse } from 'culori';
+import { oklch, parse, inGamut } from 'culori';
 
 describe('DittoTones', () => {
   // Helper to create simple test ramps
@@ -52,9 +52,15 @@ describe('DittoTones', () => {
   };
 
   let ditto: DittoTones;
+  let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     ditto = new DittoTones({ ramps: createTestRamps() });
+  });
+
+  afterEach(() => {
+    warnSpy.mockRestore();
   });
 
   describe('Constructor', () => {
@@ -166,6 +172,55 @@ describe('DittoTones', () => {
       expect(result.method).toBe('single');
     });
 
+    it('should keep the neutral ramp hue for achromatic input', () => {
+      // Pure gray parses to h: undefined in culori. The scale must not fall
+      // back to hue 0 (red) — it should keep the tinted ramp's own hue.
+      const tintedGray: Ramp = {
+        '1': { mode: 'oklch', l: 0.9, c: 0.01, h: 250 },
+        '2': { mode: 'oklch', l: 0.7, c: 0.012, h: 250 },
+        '3': { mode: 'oklch', l: 0.6, c: 0.008, h: 250 },
+        '4': { mode: 'oklch', l: 0.4, c: 0.012, h: 250 },
+        '5': { mode: 'oklch', l: 0.2, c: 0.01, h: 250 },
+      };
+      const blue: Ramp = {
+        '1': { mode: 'oklch', l: 0.9, c: 0.05, h: 240 },
+        '2': { mode: 'oklch', l: 0.7, c: 0.12, h: 240 },
+        '3': { mode: 'oklch', l: 0.6, c: 0.15, h: 240 },
+        '4': { mode: 'oklch', l: 0.4, c: 0.12, h: 240 },
+        '5': { mode: 'oklch', l: 0.2, c: 0.05, h: 240 },
+      };
+      const d = new DittoTones({
+        ramps: new Map([
+          ['tinted', tintedGray],
+          ['blue', blue],
+        ]),
+      });
+
+      const result = d.generate('#808080'); // h: undefined
+      expect(result.sources[0].name).toBe('tinted');
+
+      for (const color of Object.values(result.scale)) {
+        if ((color.c ?? 0) > 0.001 && color.h !== undefined) {
+          expect(color.h).toBeCloseTo(250, 0);
+        }
+      }
+    });
+
+    it('should rescale lightness around the matched neutral shade', () => {
+      // Input L=0.53 matches gray-500 (L=0.5). Neighboring shades should be
+      // remapped with the same piecewise-linear scaling as chromatic scales,
+      // not left at their original ramp lightness.
+      const result = ditto.generate('oklch(0.53 0.005 100)');
+      expect(result.sources[0].name).toBe('gray');
+      expect(result.matchedShade).toBe('500');
+
+      expect(result.scale['500'].l).toBeCloseTo(0.53, 2);
+      // Darker side: l * (0.53 / 0.5)
+      expect(result.scale['600'].l).toBeCloseTo(0.424, 2);
+      // Lighter side: 0.53 + (l - 0.5) * (1 - 0.53) / (1 - 0.5)
+      expect(result.scale['400'].l).toBeCloseTo(0.624, 2);
+    });
+
     it('should preserve hue tint in neutral colors', () => {
       // Create a very low-chroma but non-zero hue color
       const warmGray = 'oklch(0.5 0.01 30)';
@@ -174,6 +229,38 @@ describe('DittoTones', () => {
       // Check that the generated scale has the same hue
       const scale500 = result.scale['500'];
       expect(scale500.h).toBeCloseTo(30, 0);
+    });
+  });
+
+  describe('Neutral ramp detection', () => {
+    it('should warn when no near-neutral ramp exists', () => {
+      const ramps = createTestRamps();
+      ramps.delete('gray');
+      new DittoTones({ ramps });
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('neutral'));
+    });
+
+    it('should not warn when a near-neutral ramp exists', () => {
+      new DittoTones({ ramps: createTestRamps() });
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Gamut mapping', () => {
+    it('should map output to sRGB by default', () => {
+      const inSrgb = inGamut('rgb');
+      const result = ditto.generate('oklch(0.97 0.06 350)');
+      for (const color of Object.values(result.scale)) {
+        expect(inSrgb(color)).toBe(true);
+      }
+    });
+
+    it('should allow disabling gamut mapping', () => {
+      const d = new DittoTones({ ramps: createTestRamps(), gamutMap: false });
+      const inSrgb = inGamut('rgb');
+      const result = d.generate('oklch(0.97 0.06 350)');
+      const outOfGamut = Object.values(result.scale).filter((c) => !inSrgb(c));
+      expect(outOfGamut.length).toBeGreaterThan(0);
     });
   });
 

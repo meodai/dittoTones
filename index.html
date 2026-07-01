@@ -65,7 +65,9 @@
         -moz-osx-font-smoothing: grayscale;
       }
 
-      :root, html, body {
+      :root,
+      html,
+      body {
         overflow-x: clip;
       }
 
@@ -133,7 +135,6 @@
         color: var(--c-text);
         padding: max(15vmin, 2rem);
       }
-
 
       @media (max-width: 700px) {
         body {
@@ -660,7 +661,7 @@
         }
         .ramp-selector {
           order: 1;
-          padding: .44rem .8rem;
+          padding: 0.44rem 0.8rem;
           width: calc(50% - 0.75rem);
           flex: 0 0 calc(50% - 0.75rem);
         }
@@ -734,8 +735,12 @@
         <div class="section__header">
           <h2 class="section__title">Ramp-Mix</h2>
           <div class="section__options">
-            <label class="option-label"><input type="checkbox" id="hueOffsetsToggle"> Hue Offsets</label>
-            <label class="option-label"><input type="checkbox" id="gamutMapToggle"> Gamut Map</label>
+            <label class="option-label"
+              ><input type="checkbox" id="hueOffsetsToggle" /> Hue Offsets</label
+            >
+            <label class="option-label"
+              ><input type="checkbox" id="gamutMapToggle" checked /> Gamut Map</label
+            >
           </div>
         </div>
         <div id="blendViz" class="blend-viz"></div>

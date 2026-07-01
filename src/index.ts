@@ -7,7 +7,7 @@ export interface DittoTonesOptions {
   ramps: Map<string, Ramp>;
   /** Preserve hue offsets from reference ramps (default: false) */
   preserveHueOffsets?: boolean;
-  /** Map output to sRGB gamut (default: false) */
+  /** Map output to sRGB gamut (default: true) */
   gamutMap?: boolean;
 }
 
@@ -46,11 +46,19 @@ export class DittoTones {
 
     this.diff = differenceEuclidean('oklch');
     this.preserveHueOffsets = options.preserveHueOffsets ?? false;
-    this.gamutMapEnabled = options.gamutMap ?? false;
-    this.neutralRampName = this.findBestNeutralRamp();
+    this.gamutMapEnabled = options.gamutMap ?? true;
+
+    const neutral = this.findBestNeutralRamp();
+    this.neutralRampName = neutral.name;
+    if (neutral.avgChroma > DittoTones.NEUTRAL_CHROMA) {
+      console.warn(
+        `dittoTones: no neutral ramp detected — the least chromatic ramp "${neutral.name}" ` +
+          `(avg chroma ${neutral.avgChroma.toFixed(3)}) will be used for low-chroma inputs.`
+      );
+    }
   }
 
-  private findBestNeutralRamp(): string {
+  private findBestNeutralRamp(): { name: string; avgChroma: number } {
     let best = { name: '', avgChroma: Infinity };
     for (const [rampName, ramp] of this.ramps) {
       let total = 0,
@@ -64,7 +72,7 @@ export class DittoTones {
       const avg = count > 0 ? total / count : Infinity;
       if (avg < best.avgChroma) best = { name: rampName, avgChroma: avg };
     }
-    return best.name;
+    return best;
   }
 
   generate(color: string): GenerateResult {
@@ -128,27 +136,11 @@ export class DittoTones {
     const matchedInRamp = ramp[shade];
     const diff = matchedInRamp ? this.diff(parsed, matchedInRamp as Oklch) : 0;
 
-    // For neutrals, preserve any hue tint *and* chroma tint from the input.
-    // Otherwise very low-chroma colors end up looking gray everywhere except the forced match shade.
-    const targetHue = parsed.h ?? 0;
-    const targetC = parsed.c ?? 0;
-    const matchedRampC = matchedInRamp?.c ?? 0;
-    const deltaC = targetC - matchedRampC;
-
-    const scale: Record<string, Oklch> = {};
-    for (const [s, color] of Object.entries(ramp)) {
-      if (!color) continue;
-      scale[s] = {
-        mode: 'oklch',
-        l: color.l,
-        c: Math.max(0, (color.c ?? 0) + deltaC),
-        h: targetHue,
-      };
-    }
-
-    // Force exact match for the closest shade (lightness too), since the neutral ramp's L won't
-    // necessarily line up exactly with the input.
-    scale[shade] = parsed;
+    // buildScale preserves any hue tint and chroma tint from the input (its
+    // low-chroma branch shifts chroma additively), and rescales lightness with
+    // the same piecewise-linear mapping as chromatic scales. For achromatic
+    // input (h: undefined) it keeps each shade's own ramp hue.
+    const scale = this.buildScale(ramp, parsed, shade);
 
     return {
       inputColor: parsed,
@@ -193,6 +185,9 @@ export class DittoTones {
       const c1 = ramp1[shadeKey] as Oklch,
         c2 = ramp2[shadeKey] as Oklch;
       if (!c1 || !c2) continue;
+      // Blend in oklab (rectangular) rather than oklch: hue interpolation can't
+      // wrap the wrong way. The slight chroma loss when the ramps' hues differ
+      // is re-anchored to the input chroma by buildScale afterwards.
       blendedRamp[shadeKey] = oklch(interpolate([c1, c2], 'oklab')(t)) as Oklch;
     }
 
@@ -221,15 +216,17 @@ export class DittoTones {
   }
 
   private buildScale(ramp: Ramp, target: Oklch, matchedShade: string): Record<string, Oklch> {
-    const targetHue = target.h ?? 0;
+    // Achromatic input (e.g. pure gray) has h: undefined — keep each shade's
+    // own ramp hue instead of falling back to hue 0 (red).
+    const targetHue = target.h;
     const matchedPt = ramp[matchedShade];
     const matchedHue = matchedPt?.h ?? 0;
 
     const rotated: Record<string, Oklch> = {};
     for (const [shade, pt] of Object.entries(ramp)) {
       if (!pt) continue;
-      let h = targetHue;
-      if (this.preserveHueOffsets) {
+      let h = targetHue ?? pt.h;
+      if (this.preserveHueOffsets && targetHue !== undefined) {
         // Preserve hue offsets from the reference ramp relative to the matched shade.
         // Real design-system ramps often have deliberate hue shifts across the lightness
         // range (e.g., Tailwind blues shift toward purple in dark shades).
