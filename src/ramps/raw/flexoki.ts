@@ -1,5 +1,21 @@
-// https://github.com/kepano/flexoki v1.0
+// Flexoki v1.0 color palette — https://github.com/kepano/flexoki
+// MIT License, Copyright (c) 2023 Steph Ango
 export const flexokiColors = {
+  base: {
+    '50': '#F2F0E5',
+    '100': '#E6E4D9',
+    '150': '#DAD8CE',
+    '200': '#CECDC3',
+    '300': '#B7B5AC',
+    '400': '#9F9D96',
+    '500': '#878580',
+    '600': '#6F6E69',
+    '700': '#575653',
+    '800': '#403E3C',
+    '850': '#343331',
+    '900': '#282726',
+    '950': '#1C1B1A',
+  },
   red: {
     '50': '#FFE1D5',
     '100': '#FFCABB',
