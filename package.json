@@ -19,16 +19,20 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
+    },
+    "./ramps/*": {
+      "types": "./dist/ramps/*.d.ts",
+      "import": "./dist/ramps/*.js",
+      "require": "./dist/ramps/*.cjs"
     }
   },
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "@types/culori": "^4.0.1",
     "@vitest/ui": "^4.0.16",
     "prettier": "^3.7.4",
     "typescript": "~5.9.3",
@@ -39,6 +43,7 @@
     "vite": "npm:rolldown-vite@7.2.5"
   },
   "dependencies": {
+    "@types/culori": "^4.0.1",
     "culori": "^4.0.2"
   }
 }
