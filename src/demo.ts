@@ -363,6 +363,27 @@ async function fetchAndApplyName(result: ReturnType<typeof ditto.generate>) {
   }
 }
 
+// Dev-only 3D gamut view, enabled with ?3d in the URL (not shown by default).
+let gamutView: { update: (d: import('./gamut3d').GamutViewData) => void } | null = null;
+function updateGamutView(result: ReturnType<typeof ditto.generate>) {
+  gamutView?.update({
+    ramps: getCurrentRamps(),
+    sources: result.sources.map((s) => s.name),
+    scale: result.scale,
+    input: result.inputColor,
+  });
+}
+if (new URLSearchParams(location.search).has('3d')) {
+  import('./gamut3d').then(({ createGamutView }) => {
+    const section = document.createElement('div');
+    section.className = 'section gamut3d';
+    section.innerHTML = '<h2 class="section__title">Gamut (OKLab)</h2><div class="gamut3d__view"></div>';
+    paletteGrid.closest('.section')!.after(section);
+    gamutView = createGamutView(section.querySelector('.gamut3d__view')!);
+    if (lastResult) updateGamutView(lastResult);
+  });
+}
+
 function updatePalette(color: string) {
   try {
     const result = ditto.generate(color);
@@ -383,6 +404,7 @@ function updatePalette(color: string) {
         .join(' + ') + ` @ shade <strong>${result.matchedShade}</strong>`;
 
     renderBlendViz(result);
+    updateGamutView(result);
 
     // Update grid columns based on shade count
     paletteGrid.style.gridTemplateColumns = `repeat(${shades.length}, 1fr)`;
