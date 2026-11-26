@@ -373,7 +373,7 @@ function updateGamutView(result: ReturnType<typeof ditto.generate>) {
     input: result.inputColor,
   });
 }
-if (new URLSearchParams(location.search).has('3d')) {
+if (new URLSearchParams(location.search).has('3d') || (import.meta as any).env?.VITE_GAMUT3D) {
   import('./gamut3d').then(({ createGamutView }) => {
     const section = document.createElement('div');
     section.className = 'section gamut3d';
